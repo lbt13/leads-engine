@@ -1,0 +1,13 @@
+venv/
+dist/
+build/
+__pycache__/
+*.pyc
+*.db
+*.log
+.env
+*.spec
+.claude/
+crm/
+analyses_a2/
+output/
