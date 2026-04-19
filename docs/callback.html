@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LeadsEngine — Connexion CRM</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0D0E11;color:#E2DDD6;font-family:'Segoe UI',system-ui,sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh}
+.card{background:#13151A;border:1px solid #1E2028;border-radius:12px;padding:40px;max-width:500px;width:90%;text-align:center}
+h1{font-size:20px;font-weight:700;margin-bottom:8px;color:#F0EBE3}
+.sub{color:#4A4D58;font-size:13px;margin-bottom:24px}
+.code-box{background:#0D0E11;border:1px solid #2E3240;border-radius:8px;padding:16px;font-family:'Consolas',monospace;font-size:14px;color:#E87B2A;word-break:break-all;cursor:pointer;position:relative;margin-bottom:16px}
+.code-box:hover{border-color:#E87B2A}
+.copied{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#E87B2A;color:#0D0E11;padding:6px 16px;border-radius:6px;font-weight:700;font-size:13px;display:none}
+.instructions{color:#6A6560;font-size:12px;line-height:1.6}
+.error{color:#E84C4C;font-size:14px}
+.logo{font-size:24px;font-weight:900;margin-bottom:20px;letter-spacing:-0.5px}
+.logo span{color:#E87B2A}
+</style>
+</head>
+<body>
+<div class="card">
+<div class="logo">&#9672; leads<span>.</span>engine</div>
+<div id="content"></div>
+</div>
+<script>
+const params = new URLSearchParams(window.location.search);
+const code = params.get('code');
+const el = document.getElementById('content');
+if (code) {
+    el.innerHTML = `
+        <h1>Connexion autorisee !</h1>
+        <p class="sub">Copie le code ci-dessous et colle-le dans LeadsEngine</p>
+        <div class="code-box" id="codeBox" onclick="copyCode()">
+            ${code}
+            <div class="copied" id="copiedMsg">Copie !</div>
+        </div>
+        <p class="instructions">Retourne dans LeadsEngine → Configuration → Connexion CRM<br>et colle ce code dans le champ prevu.</p>
+    `;
+} else {
+    el.innerHTML = '<p class="error">Aucun code recu. Reessaie la connexion depuis LeadsEngine.</p>';
+}
+function copyCode() {
+    navigator.clipboard.writeText('${code || ''}');
+    const msg = document.getElementById('copiedMsg');
+    msg.style.display = 'block';
+    setTimeout(() => msg.style.display = 'none', 1500);
+}
+</script>
+</body>
+</html>
