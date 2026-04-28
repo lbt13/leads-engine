@@ -65,12 +65,22 @@ class Lead:
     h1_count:          Optional[int]   = None
     is_responsive:     Optional[bool]  = None
     has_analytics:     Optional[bool]  = None
+    has_google_ads:    Optional[bool]  = None
+    domain_age:        Optional[str]   = None
     copyright_year:    Optional[str]   = None
     has_seo_keywords:  Optional[bool]  = None
     seo_signals:       Optional[str]   = None
     seo_score:         Optional[int]   = None
     seo_weaknesses:    list            = field(default_factory=list)
     seo_summary:       Optional[str]   = None
+    social_facebook:   Optional[str]   = None
+    social_instagram:  Optional[str]   = None
+    social_linkedin:   Optional[str]   = None
+    social_twitter:    Optional[str]   = None
+    social_youtube:    Optional[str]   = None
+    social_tiktok:     Optional[str]   = None
+    social_pinterest:  Optional[str]   = None
+    social_count:      Optional[int]   = None
     hook:              Optional[str]   = None
     score:             Optional[float] = None
     status:            LeadStatus      = LeadStatus.SCRAPED
@@ -82,6 +92,6 @@ class Lead:
         d["status"]           = self.status.value
         d["gmb_confirmed"]    = int(self.gmb_confirmed)
         d["seo_weaknesses"]   = "|".join(self.seo_weaknesses)
-        for f in ("est_ei","est_association","is_https","has_meta_desc","is_responsive","has_analytics","has_seo_keywords"):
+        for f in ("est_ei","est_association","is_https","has_meta_desc","is_responsive","has_analytics","has_google_ads","has_seo_keywords"):
             if d.get(f) is not None: d[f] = int(d[f])
         return d

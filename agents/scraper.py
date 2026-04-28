@@ -122,6 +122,27 @@ def _to_lead(d: dict, sector: str) -> Lead:
     )
 
 
+def _apply_website_filter(leads: list, website_filter: str) -> list:
+    if website_filter == "with_site":
+        return [l for l in leads if l.get("website_url")]
+    elif website_filter == "without_site":
+        return [l for l in leads if not l.get("website_url")]
+    return leads
+
+
+FRANCE_CITIES = [
+    "Paris", "Marseille", "Lyon", "Toulouse", "Nice", "Nantes", "Montpellier",
+    "Strasbourg", "Bordeaux", "Lille", "Rennes", "Reims", "Saint-Étienne",
+    "Le Havre", "Toulon", "Grenoble", "Dijon", "Angers", "Nîmes", "Villeurbanne",
+    "Clermont-Ferrand", "Le Mans", "Aix-en-Provence", "Brest", "Tours",
+    "Amiens", "Limoges", "Perpignan", "Metz", "Besançon", "Orléans",
+    "Rouen", "Caen", "Mulhouse", "Nancy", "Argenteuil", "Montreuil",
+    "Saint-Denis", "Roubaix", "Tourcoing", "Avignon", "Poitiers",
+    "Pau", "La Rochelle", "Calais", "Dunkerque", "Valence",
+    "Troyes", "Chambéry", "Lorient", "Bayonne",
+]
+
+
 class ScraperAgent:
     def __init__(self, queue: LeadQueue):
         self.queue = queue
@@ -167,7 +188,7 @@ class ScraperAgent:
 
         return results
 
-    async def run(self, queries: list, use_maps=True, use_registre=True, max_per_query=None) -> list:
+    async def run(self, queries: list, use_maps=True, use_registre=True, max_per_query=None, max_total=None, website_filter="all") -> list:
         raw = []
         self.expanded_cities = {}  # {ville_demandée: [villes_explorées]}
 
@@ -177,7 +198,39 @@ class ScraperAgent:
         for sector, city in queries:
             sector = str(sector or "").strip()
             city   = str(city   or "").strip()
-            if not sector or not city:
+            if not sector:
+                continue
+
+            # ── Mode France entière ──────────────────────────────
+            if city == "__france__":
+                target = max_total or max_per_query or config.max_results_per_query
+                collected_for_query = []
+                cities_explored = []
+                batch_per_city = max(10, target // len(FRANCE_CITIES) + 5)
+
+                for fc in FRANCE_CITIES:
+                    # Vérifier si on a atteint le total global
+                    deduped = deduplicate(list(collected_for_query))
+                    if existing_leads:
+                        deduped, _ = deduplicate_against_db(deduped, existing_leads)
+                    if crm:
+                        deduped, _ = filter_against_crm(deduped, crm)
+                    deduped = _apply_website_filter(deduped, website_filter)
+                    if len(deduped) >= target:
+                        break
+
+                    log.info("=== %s @ %s (France entière) ===", sector, fc)
+                    cities_explored.append(fc)
+                    batch = self._scrape_city(sector, fc, use_maps, use_registre, batch_per_city)
+                    collected_for_query.extend(batch)
+
+                self.expanded_cities[f"{sector} @ France"] = cities_explored
+                log.info("France entière : %d villes explorées pour '%s'", len(cities_explored), sector)
+                raw.extend(collected_for_query)
+                continue
+
+            # ── Mode ville classique ─────────────────────────────
+            if not city:
                 continue
 
             target = max_per_query or config.max_results_per_query
@@ -189,12 +242,13 @@ class ScraperAgent:
             batch = self._scrape_city(sector, city, use_maps, use_registre, target)
             collected_for_query.extend(batch)
 
-            # Dédup interne + cross-session pour évaluer le déficit
+            # Dédup interne + cross-session + filtre site pour évaluer le déficit
             deduped = deduplicate(list(collected_for_query))
             if existing_leads:
                 deduped, _ = deduplicate_against_db(deduped, existing_leads)
             if crm:
                 deduped, _ = filter_against_crm(deduped, crm)
+            deduped = _apply_website_filter(deduped, website_filter)
 
             deficit = target - len(deduped)
 
@@ -221,6 +275,7 @@ class ScraperAgent:
                         deduped, _ = deduplicate_against_db(deduped, existing_leads)
                     if crm:
                         deduped, _ = filter_against_crm(deduped, crm)
+                    deduped = _apply_website_filter(deduped, website_filter)
                     deficit = target - len(deduped)
 
                 if len(cities_explored) > 1:
@@ -249,6 +304,18 @@ class ScraperAgent:
             log.info("Filtre CRM : %d doublons exclus — %d leads restants", nb_exclus, len(raw))
         else:
             log.info("Filtre CRM : aucun fichier CRM chargé")
+
+        # Filtre site web
+        if website_filter != "all":
+            before_wf = len(raw)
+            raw = _apply_website_filter(raw, website_filter)
+            _wf_label = "avec site" if website_filter == "with_site" else "sans site"
+            log.info("Filtre site web (%s) : %d -> %d", _wf_label, before_wf, len(raw))
+
+        # Troncature au total demandé
+        if max_total and len(raw) > max_total:
+            log.info("Troncature : %d -> %d (total demandé)", len(raw), max_total)
+            raw = raw[:max_total]
 
         # Enrichissement dirigeant
         log.info("Recherche des dirigeants (%d entreprises)...", len(raw))

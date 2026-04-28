@@ -45,7 +45,9 @@ pyinstaller ^
     --hidden-import "lxml.etree" ^
     --hidden-import "dns.resolver" ^
     --hidden-import "sqlite3" ^
-    --collect-all playwright ^
+    --hidden-import "email.mime.text" ^
+    --hidden-import "email.mime.multipart" ^
+    --hidden-import "email.mime.base" ^
     run.py
 
 :: Copie le .env dans le dossier de distribution (clés API)
@@ -53,10 +55,6 @@ if exist .env copy .env dist\LeadsEngine\.env
 
 :: Copie version.txt dans le dossier de distribution
 if exist version.txt copy version.txt dist\LeadsEngine\version.txt
-
-:: Copie les navigateurs Playwright pour que Pages Jaunes fonctionne
-echo Copie des navigateurs Playwright...
-xcopy /E /I /Q "%USERPROFILE%\AppData\Local\ms-playwright" dist\LeadsEngine\playwright_browsers
 
 :: Crée le ZIP de release (sans données utilisateur)
 echo.
@@ -66,6 +64,7 @@ powershell -Command ^
   "New-Item -ItemType Directory -Path $tmp -Force | Out-Null; " ^
   "Copy-Item 'dist\LeadsEngine\LeadsEngine.exe' $tmp; " ^
   "Copy-Item 'dist\LeadsEngine\version.txt' $tmp; " ^
+  "Copy-Item 'dist\LeadsEngine\.env' $tmp; " ^
   "Copy-Item 'dist\LeadsEngine\_internal' \"$tmp\_internal\" -Recurse; " ^
   "if (Test-Path 'dist\LeadsEngine.zip') { Remove-Item 'dist\LeadsEngine.zip' }; " ^
   "Compress-Archive -Path 'dist\_release_tmp\LeadsEngine' -DestinationPath 'dist\LeadsEngine.zip'; " ^

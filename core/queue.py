@@ -28,11 +28,17 @@ CREATE TABLE IF NOT EXISTS leads (
     is_https INTEGER, pagespeed_mobile INTEGER, pagespeed_desktop INTEGER,
     page_count INTEGER, page_title TEXT, has_meta_desc INTEGER,
     h1_count INTEGER, is_responsive INTEGER, has_analytics INTEGER,
+    has_google_ads INTEGER, domain_age TEXT,
     copyright_year TEXT,
     has_seo_keywords INTEGER,
     seo_signals TEXT,
     seo_score INTEGER,
-    seo_weaknesses TEXT, seo_summary TEXT, hook TEXT,
+    seo_weaknesses TEXT, seo_summary TEXT,
+    social_facebook TEXT, social_instagram TEXT,
+    social_linkedin TEXT, social_twitter TEXT,
+    social_youtube TEXT, social_tiktok TEXT,
+    social_pinterest TEXT, social_count INTEGER,
+    hook TEXT,
     score REAL, status TEXT DEFAULT 'scraped',
     error_message TEXT, scraped_at TEXT, updated_at TEXT,
     UNIQUE(session_id, company_name, city, source)
@@ -56,8 +62,15 @@ ALL_NEW_COLS = {
     "agence_web":"TEXT","is_https":"INTEGER",
     "page_title":"TEXT","has_meta_desc":"INTEGER",
     "h1_count":"INTEGER","is_responsive":"INTEGER",
-    "has_analytics":"INTEGER","copyright_year":"TEXT",
+    "has_analytics":"INTEGER","has_google_ads":"INTEGER","domain_age":"TEXT",
+    "copyright_year":"TEXT",
     "has_seo_keywords":"INTEGER","seo_signals":"TEXT","seo_score":"INTEGER",
+    "social_facebook":"TEXT","social_instagram":"TEXT",
+    "social_linkedin":"TEXT","social_twitter":"TEXT",
+    "social_youtube":"TEXT","social_tiktok":"TEXT",
+    "social_pinterest":"TEXT","social_count":"INTEGER",
+    "call_status":"TEXT DEFAULT 'non_appele'","lead_notes":"TEXT",
+    "tags":"TEXT","lead_history":"TEXT",
 }
 
 
@@ -83,8 +96,11 @@ class LeadQueue:
             existing = {r[1] for r in conn.execute("PRAGMA table_info(leads)").fetchall()}
             for col, typ in ALL_NEW_COLS.items():
                 if col not in existing:
-                    conn.execute(f"ALTER TABLE leads ADD COLUMN {col} {typ}")
-                    log.info("Migration : colonne '%s' ajoutée", col)
+                    try:
+                        conn.execute(f"ALTER TABLE leads ADD COLUMN {col} {typ}")
+                        log.info("Migration : colonne '%s' ajoutée", col)
+                    except Exception:
+                        pass
 
     def save(self, lead: Lead) -> int:
         d = lead.to_dict()

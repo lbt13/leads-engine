@@ -2,7 +2,7 @@
 Recherche d'entreprises par secteur + localisation via l'API gouvernementale
 recherche-entreprises.api.gouv.fr (gratuite, sans clé, licence ouverte Etalab).
 
-Remplace le scraping Pages Jaunes comme seconde source de leads.
+Seconde source de leads (données légales, dirigeants, NAF, effectifs).
 """
 import sys
 import time
@@ -224,7 +224,7 @@ def _get_code_postal(city_name: str) -> str | None:
 def search_entreprises(sector: str, city: str, max_results: int = 25) -> list[dict]:
     """
     Recherche des entreprises actives par secteur + ville.
-    Retourne une liste de dicts au même format que les résultats Google Maps / Pages Jaunes.
+    Retourne une liste de dicts au même format que les résultats Google Maps.
     """
     naf_codes = _resolve_naf_codes(sector)
 

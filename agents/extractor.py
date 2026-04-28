@@ -1,12 +1,13 @@
 """
 agents/extractor.py — Agent 2
-Extraction technique via httpx (sans Playwright).
+Extraction technique via httpx.
 Plus rapide, plus fiable, fonctionne dans tous les contextes.
 """
 
 import sys, re, time, asyncio, threading
 from pathlib import Path
 from urllib.parse import urlparse
+from datetime import datetime
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
@@ -176,6 +177,90 @@ def extract_phone(html: str) -> str:
     return ""
 
 
+# ── Google Ads detection ──────────────────────────────────────────────────
+def detect_google_ads(html: str) -> bool:
+    """Détecte si le site utilise Google Ads (balises de conversion/remarketing)."""
+    indicators = [
+        "googleads.g.doubleclick.net",
+        "googlesyndication.com",
+        "google_conversion_id",
+        "google_remarketing_only",
+        "AW-",                          # ID de conversion Google Ads (AW-XXXXXXXXX)
+        "gtag('config', 'AW-",
+        "googleadservices.com",
+        "google_tag_params",
+        "conversion_async_click",
+    ]
+    html_l = html.lower()
+    return any(ind.lower() in html_l for ind in indicators)
+
+
+# ── Âge du domaine (RDAP) ────────────────────────────────────────────────
+def get_domain_age(domain: str) -> str | None:
+    """
+    Récupère la date de création du domaine via RDAP (remplaçant de WHOIS).
+    Retourne l'âge en format lisible ("3 ans", "8 mois") ou None.
+    """
+    # Extraire le domaine racine (ex: sous.domaine.fr -> domaine.fr)
+    parts = domain.split(".")
+    if len(parts) > 2:
+        domain = ".".join(parts[-2:])
+
+    try:
+        r = httpx.get(f"https://rdap.org/domain/{domain}", timeout=10, follow_redirects=True)
+        if r.status_code != 200:
+            return None
+        data = r.json()
+
+        # Chercher l'événement "registration"
+        for event in data.get("events", []):
+            if event.get("eventAction") == "registration":
+                date_str = event["eventDate"]
+                created = datetime.fromisoformat(date_str.replace("Z", "+00:00"))
+                now = datetime.now(created.tzinfo) if created.tzinfo else datetime.now()
+                delta = now - created
+                years = delta.days // 365
+                months = (delta.days % 365) // 30
+                if years > 0:
+                    return f"{years} an{'s' if years > 1 else ''}"
+                elif months > 0:
+                    return f"{months} mois"
+                else:
+                    return "< 1 mois"
+    except Exception as e:
+        log.debug("RDAP erreur pour %s : %s", domain, e)
+    return None
+
+
+# ── Réseaux sociaux ──────────────────────────────────────────────────────────
+SOCIAL_PLATFORMS = {
+    "facebook":  [r'href=["\'](?:https?://)?(?:www\.)?facebook\.com/([^"\'/\s?#]+)'],
+    "instagram": [r'href=["\'](?:https?://)?(?:www\.)?instagram\.com/([^"\'/\s?#]+)'],
+    "linkedin":  [r'href=["\'](?:https?://)?(?:www\.)?linkedin\.com/(?:company|in)/([^"\'/\s?#]+)'],
+    "twitter":   [r'href=["\'](?:https?://)?(?:www\.)?(?:twitter\.com|x\.com)/([^"\'/\s?#]+)'],
+    "youtube":   [r'href=["\'](?:https?://)?(?:www\.)?youtube\.com/(?:channel/|@|c/|user/)?([^"\'/\s?#]+)'],
+    "tiktok":    [r'href=["\'](?:https?://)?(?:www\.)?tiktok\.com/@([^"\'/\s?#]+)'],
+    "pinterest": [r'href=["\'](?:https?://)?(?:www\.)?pinterest\.[a-z.]+/([^"\'/\s?#]+)'],
+}
+
+SOCIAL_BLACKLIST = {"sharer", "share", "intent", "dialog", "login", "signup", "help", "about", "legal", "policy", "terms"}
+
+
+def detect_social_links(html: str) -> dict:
+    found = {}
+    for platform, patterns in SOCIAL_PLATFORMS.items():
+        for pattern in patterns:
+            matches = re.findall(pattern, html, re.IGNORECASE)
+            for m in matches:
+                handle = m.strip().rstrip("/")
+                if handle.lower() not in SOCIAL_BLACKLIST and len(handle) > 1:
+                    found[platform] = handle
+                    break
+            if platform in found:
+                break
+    return found
+
+
 # ── Structure ─────────────────────────────────────────────────────────────────
 def analyze_structure(soup, html: str) -> dict:
     try:
@@ -201,7 +286,7 @@ def analyze_structure(soup, html: str) -> dict:
 
 
 # ── Faiblesses ────────────────────────────────────────────────────────────────
-def compute_weaknesses(structure: dict, ps_mobile, cms: str, seo: dict) -> str:
+def compute_weaknesses(structure: dict, ps_mobile, cms: str, seo: dict, social_count: int = 0) -> str:
     w = []
     if ps_mobile is not None:
         if   ps_mobile < 30: w.append(f"Site très lent ({ps_mobile}/100)")
@@ -217,81 +302,19 @@ def compute_weaknesses(structure: dict, ps_mobile, cms: str, seo: dict) -> str:
     if cms in ("Wix","Webador","Jimdo","Weebly"): w.append(f"CMS gratuit ({cms})")
     y = structure.get("copyright_year","")
     if y and str(y).isdigit() and int(y) < 2019: w.append(f"Site ancien (© {y})")
-    # Signaux SEO manquants qui ont fait baisser le score
+    if social_count == 0:
+        w.append("Aucune présence réseaux sociaux")
+    elif social_count == 1:
+        w.append("Présence réseaux sociaux limitée (1 réseau)")
     for label in (seo.get("seo_missing") or []):
         w.append(label)
     return "|".join(w)
 
 
-# ── Visite Playwright (fallback JS) ──────────────────────────────────────────
-# ── Visite Playwright (fallback JS) ──────────────────────────────────────────
-async def _fetch_html_playwright_async(url: str) -> dict:
-    """Fallback Playwright pour les sites qui bloquent httpx ou nécessitent JS."""
-    from playwright.async_api import async_playwright, TimeoutError as PWTimeout
-
-    result = {"html": "", "headers": {}, "final_url": url, "is_https": False}
-    try:
-        async with async_playwright() as pw:
-            browser = await pw.chromium.launch(
-                headless=True,
-                args=["--no-sandbox", "--disable-dev-shm-usage"],
-            )
-            ctx = await browser.new_context(
-                locale="fr-FR",
-                viewport={"width": 1280, "height": 800},
-                user_agent=HEADERS["User-Agent"],
-            )
-            page = await ctx.new_page()
-            await page.route(
-                "**/*.{png,jpg,jpeg,gif,webp,woff,woff2,svg}",
-                lambda r: r.abort()
-            )
-            resp = None
-            try:
-                resp = await page.goto(url, timeout=20000, wait_until="domcontentloaded")
-            except PWTimeout:
-                log.warning("Playwright timeout : %s", url)
-            except Exception as e:
-                log.debug("Playwright goto erreur : %s", e)
-
-            if resp:
-                html = await page.content()
-                result["html"]      = html
-                result["headers"]   = await resp.all_headers()
-                result["final_url"] = page.url
-                result["is_https"]  = page.url.startswith("https://")
-            await browser.close()
-    except Exception as e:
-        log.debug("Playwright erreur globale %s : %s", url, e)
-    return result
-
-
-def _fetch_html_playwright_sync(url: str) -> dict:
-    """Wrapper synchrone pour _fetch_html_playwright_async."""
-    result_box, error_box = [], []
-
-    def run():
-        try:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            result_box.append(loop.run_until_complete(_fetch_html_playwright_async(url)))
-            loop.close()
-        except Exception as e:
-            error_box.append(e)
-
-    t = threading.Thread(target=run, daemon=True)
-    t.start()
-    t.join(timeout=40)
-    if error_box:
-        log.warning("Playwright thread erreur : %s", error_box[0])
-    return result_box[0] if result_box else {"html": "", "headers": {}, "final_url": url, "is_https": False}
-
-
-# ── Visite httpx (remplace Playwright) ───────────────────────────────────────
+# ── Visite httpx ─────────────────────────────────────────────────────────────
 def _fetch_html(url: str) -> dict:
     """
-    Récupère le HTML via httpx — plus simple, plus fiable que Playwright
-    pour la détection de CMS, emails et SEO (pas besoin de JS).
+    Récupère le HTML via httpx pour la détection de CMS, emails et SEO.
     """
     result = {"html": "", "headers": {}, "final_url": url, "is_https": False}
 
@@ -329,27 +352,31 @@ def _fetch_html(url: str) -> dict:
     return result
 
 
+# ── Modules par défaut ───────────────────────────────────────────────────────
+DEFAULT_MODULES = {
+    "cms": True, "seo": True, "contacts": True,
+    "pagespeed": True, "social": True, "agence": True,
+    "domain_age": True, "google_ads": True,
+}
+
+
 # ── Traitement d'un lead ──────────────────────────────────────────────────────
-def process_lead(lead_dict: dict) -> dict:
+def process_lead(lead_dict: dict, modules: dict | None = None) -> dict:
+    mod = {**DEFAULT_MODULES, **(modules or {})}
+
     url = lead_dict.get("website_url") or ""
     if not url:
         return {"_status": "skipped", "_error": "pas de site web"}
     if not url.startswith("http"):
         url = "https://" + url
 
-    log.info("    → %s", url)
+    log.info("    > %s", url)
 
     try:
-        # 1. Fetch HTML via httpx, fallback Playwright si résultat insuffisant
+        # 1. Fetch HTML via httpx
         visit   = _fetch_html(url)
         html    = visit.get("html") or ""
         headers = visit.get("headers") or {}
-
-        if not html or len(html) < 200:
-            log.info("    → httpx insuffisant, retry Playwright : %s", url)
-            visit   = _fetch_html_playwright_sync(url)
-            html    = visit.get("html") or ""
-            headers = visit.get("headers") or {}
 
         if not html or len(html) < 200:
             return {"_status": "error", "_error": f"site inaccessible ({url})"}
@@ -360,49 +387,88 @@ def process_lead(lead_dict: dict) -> dict:
         except Exception as e:
             return {"_status": "error", "_error": f"parsing échoué : {e}"}
 
-        # 3. Analyses
-        cms       = detect_cms(html, headers)
-        domain    = urlparse(visit.get("final_url") or url).netloc.replace("www.","")
-        hosting   = get_hosting(domain) or "Inconnu"
-        agence    = detect_agence(html)
-        email     = extract_email(html)
-        phone     = extract_phone(html)
-        structure = analyze_structure(soup, html)
-        seo       = detect_seo(html, soup)
+        # 3. Analyses (conditionnelles)
+        domain = urlparse(visit.get("final_url") or url).netloc.replace("www.", "")
 
-        # 4. PageSpeed
-        try:
-            ps = get_pagespeed(url)
-        except Exception:
-            log.warning("PageSpeed echoue pour %s", url, exc_info=True)
+        cms     = detect_cms(html, headers) if mod["cms"] else "Inconnu"
+        hosting = (get_hosting(domain) or "Inconnu") if mod["cms"] else None
+        agence  = detect_agence(html) if mod["agence"] else ""
+        email   = extract_email(html) if mod["contacts"] else ""
+        phone   = extract_phone(html) if mod["contacts"] else ""
+        seo     = detect_seo(html, soup) if mod["seo"] else {}
+        has_gads = detect_google_ads(html) if mod["google_ads"] else False
+        dom_age = get_domain_age(domain) if mod["domain_age"] else None
+        socials = detect_social_links(html) if mod["social"] else {}
+
+        structure = analyze_structure(soup, html) if mod["seo"] else {
+            "page_title": "", "has_meta_desc": False, "h1_count": 0,
+            "is_responsive": False, "has_analytics": False, "copyright_year": "", "imgs_without_alt": 0,
+        }
+
+        # 4. PageSpeed (requête externe, la plus lente)
+        if mod["pagespeed"]:
+            try:
+                ps = get_pagespeed(url)
+            except Exception:
+                log.warning("PageSpeed echoue pour %s", url, exc_info=True)
+                ps = {"mobile": None, "desktop": None}
+        else:
             ps = {"mobile": None, "desktop": None}
 
         # 5. Faiblesses
-        weaknesses = compute_weaknesses(structure, ps.get("mobile"), cms, seo)
+        weaknesses = compute_weaknesses(structure, ps.get("mobile"), cms, seo, len(socials))
 
         # 6. Résultat — tout converti en types SQLite-compatibles
-        return {
-            "_status":           "extracted",
-            "_error":            None,
-            "email":             email or None,
-            "phone":             phone or lead_dict.get("phone") or None,
-            "cms":               cms,
-            "hosting":           hosting,
-            "agence_web":        agence or None,
-            "is_https":          1 if visit.get("is_https") else 0,
-            "pagespeed_mobile":  ps.get("mobile"),
-            "pagespeed_desktop": ps.get("desktop"),
-            "page_title":        structure.get("page_title") or None,
-            "has_meta_desc":     1 if structure.get("has_meta_desc") else 0,
-            "h1_count":          int(structure.get("h1_count") or 0),
-            "is_responsive":     1 if structure.get("is_responsive") else 0,
-            "has_analytics":     1 if structure.get("has_analytics") else 0,
-            "copyright_year":    structure.get("copyright_year") or None,
-            "has_seo_keywords":  1 if seo.get("has_seo_keywords") else 0,
-            "seo_signals":       seo.get("seo_signals") or "",
-            "seo_score":         int(seo.get("seo_score") or 0),
-            "seo_weaknesses":    weaknesses,
+        result = {
+            "_status":  "extracted",
+            "_error":   None,
+            "is_https": 1 if visit.get("is_https") else 0,
         }
+
+        if mod["contacts"]:
+            result["email"] = email or None
+            result["phone"] = phone or lead_dict.get("phone") or None
+
+        if mod["cms"]:
+            result["cms"]     = cms
+            result["hosting"] = hosting
+
+        if mod["agence"]:
+            result["agence_web"] = agence or None
+
+        if mod["pagespeed"]:
+            result["pagespeed_mobile"]  = ps.get("mobile")
+            result["pagespeed_desktop"] = ps.get("desktop")
+
+        if mod["seo"]:
+            result["page_title"]       = structure.get("page_title") or None
+            result["has_meta_desc"]    = 1 if structure.get("has_meta_desc") else 0
+            result["h1_count"]         = int(structure.get("h1_count") or 0)
+            result["is_responsive"]    = 1 if structure.get("is_responsive") else 0
+            result["has_analytics"]    = 1 if structure.get("has_analytics") else 0
+            result["copyright_year"]   = structure.get("copyright_year") or None
+            result["has_seo_keywords"] = 1 if seo.get("has_seo_keywords") else 0
+            result["seo_signals"]      = seo.get("seo_signals") or ""
+            result["seo_score"]        = int(seo.get("seo_score") or 0)
+
+        if mod["google_ads"]:
+            result["has_google_ads"] = 1 if has_gads else 0
+
+        if mod["domain_age"]:
+            result["domain_age"] = dom_age
+
+        if mod["social"]:
+            result["social_facebook"]  = socials.get("facebook")
+            result["social_instagram"] = socials.get("instagram")
+            result["social_linkedin"]  = socials.get("linkedin")
+            result["social_twitter"]   = socials.get("twitter")
+            result["social_youtube"]   = socials.get("youtube")
+            result["social_tiktok"]    = socials.get("tiktok")
+            result["social_pinterest"] = socials.get("pinterest")
+            result["social_count"]     = len(socials)
+
+        result["seo_weaknesses"] = weaknesses
+        return result
 
     except Exception as e:
         log.error("process_lead exception %s : %s", url, e, exc_info=True)
@@ -414,9 +480,10 @@ class ExtractorAgent:
     def __init__(self, queue: LeadQueue):
         self.queue = queue
 
-    def run(self, leads: list, delay: float = 2.0) -> dict:
+    def run(self, leads: list, delay: float = 2.0, modules: dict | None = None) -> dict:
         total, success, skipped, errors = len(leads), 0, 0, 0
-        log.info("Agent 2 démarré — %d leads", total)
+        active = [k for k, v in {**DEFAULT_MODULES, **(modules or {})}.items() if v]
+        log.info("Agent 2 démarré — %d leads — modules: %s", total, ", ".join(active))
 
         for i, lead in enumerate(leads):
             lead_id = lead.get("id")
@@ -428,7 +495,7 @@ class ExtractorAgent:
                 errors += 1
                 continue
 
-            result  = process_lead(lead)
+            result  = process_lead(lead, modules)
             status  = result.pop("_status", "error")
             error   = result.pop("_error", None)
 
