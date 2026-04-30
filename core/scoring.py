@@ -1,81 +1,87 @@
 """
-core/scoring.py — Scoring automatique des leads (0-100).
-Calculé à partir des données déjà scrapées, sans API externe.
+core/scoring.py — Scoring objectif basé sur la complétude des données (0-100).
+Un lead qualifié = un lead dont la fiche est complète, pas un jugement de valeur.
 """
 
 import pandas as pd
 
 
+# Chaque champ rempli contribue au score. Les poids reflètent l'importance
+# pour la complétude d'une fiche lead exploitable commercialement.
+COMPLETENESS_FIELDS = {
+    # ── Contact (30 pts) ─────────────────────────────────────
+    "email":            12,
+    "phone":            10,
+    "owner_name":        5,
+    "contact_name":      3,
+    # ── Entreprise (25 pts) ──────────────────────────────────
+    "company_name":      3,
+    "city":              3,
+    "sector":            3,
+    "siren":             4,
+    "legal_form":        3,
+    "employee_range":    3,
+    "creation_date":     3,
+    "capital_social":    3,
+    # ── Présence web (25 pts) ────────────────────────────────
+    "website_url":       5,
+    "cms":               3,
+    "seo_score":         3,
+    "pagespeed_mobile":  3,
+    "has_analytics":     2,
+    "is_responsive":     2,
+    "has_google_ads":    2,
+    "domain_age":        3,
+    "hosting":           2,
+    # ── Réputation & réseaux (20 pts) ────────────────────────
+    "google_rating":     5,
+    "review_count":      5,
+    "social_count":      5,
+    "agence_web":        2,
+    "gmb_confirmed":     3,
+}
+
+_TOTAL_WEIGHT = sum(COMPLETENESS_FIELDS.values())
+
+
+def _field_filled(row: pd.Series, field: str) -> bool:
+    val = row.get(field)
+    if val is None or (isinstance(val, float) and pd.isna(val)):
+        return False
+    s = str(val).strip()
+    if s in ("", "0", "Inconnu", "None", "nan"):
+        return False
+    if field == "cms" and s == "Inconnu":
+        return False
+    if field == "social_count":
+        try:
+            return int(float(s)) > 0
+        except (ValueError, TypeError):
+            return False
+    if field in ("has_analytics", "is_responsive", "has_google_ads", "gmb_confirmed"):
+        try:
+            return int(float(s)) == 1
+        except (ValueError, TypeError):
+            return False
+    if field == "seo_score":
+        try:
+            return int(float(s)) > 0
+        except (ValueError, TypeError):
+            return False
+    if field in ("google_rating", "review_count", "pagespeed_mobile"):
+        try:
+            return float(s) > 0
+        except (ValueError, TypeError):
+            return False
+    return True
+
+
 def compute_lead_score(row: pd.Series) -> int:
-    score = 0
-
-    # Contact direct
-    email = row.get("email")
-    if pd.notna(email) and str(email).strip():
-        score += 15
-    phone = row.get("phone")
-    if pd.notna(phone) and str(phone).strip():
-        score += 10
-
-    # Présence en ligne
-    website = row.get("website_url")
-    if pd.notna(website) and str(website).strip():
-        score += 10
-
-    # Réputation Google
-    rating = row.get("google_rating")
-    if pd.notna(rating):
-        try:
-            if float(rating) >= 4.0:
-                score += 10
-        except (ValueError, TypeError):
-            pass
-
-    reviews = row.get("review_count")
-    if pd.notna(reviews):
-        try:
-            if int(reviews) > 10:
-                score += 5
-        except (ValueError, TypeError):
-            pass
-
-    # Opportunités digitales (scoring inversé = besoin = opportunité)
-    seo = row.get("seo_score")
-    if pd.notna(seo):
-        try:
-            if int(seo) < 5:
-                score += 15
-            elif int(seo) < 7:
-                score += 8
-        except (ValueError, TypeError):
-            pass
-
-    ads = row.get("has_google_ads")
-    if pd.notna(ads) and str(ads) in ("0", "False", "false", ""):
-        score += 10
-
-    cms = row.get("cms")
-    if pd.notna(cms) and str(cms).strip():
-        score += 5
-
-    speed = row.get("pagespeed_mobile")
-    if pd.notna(speed):
-        try:
-            if int(speed) < 50:
-                score += 10
-        except (ValueError, TypeError):
-            pass
-
-    # Entreprise structurée
-    effectif = row.get("employee_range")
-    if pd.notna(effectif) and str(effectif).strip():
-        score += 5
-
-    dirigeant = row.get("owner_name")
-    if pd.notna(dirigeant) and str(dirigeant).strip():
-        score += 5
-
-    return min(score, 100)
+    points = sum(
+        weight for field, weight in COMPLETENESS_FIELDS.items()
+        if _field_filled(row, field)
+    )
+    return round(points * 100 / _TOTAL_WEIGHT)
 
 
 def score_label(score: int) -> tuple[str, str]:

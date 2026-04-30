@@ -46,48 +46,117 @@ st.set_page_config(page_title="Leads Engine", page_icon="◈", layout="wide", in
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Epilogue:wght@300;400;500;600;700;800;900&family=IBM+Plex+Mono:wght@300;400;500&display=swap');
+
+/* ── Reset & base ───────────────────────────────────────────── */
 *,*::before,*::after{box-sizing:border-box}
-html,body,[class*="css"],.stApp{font-family:'Epilogue',sans-serif !important;background-color:#0D0E11 !important;color:#E2DDD6 !important}
+html,body,[class*="css"],.stApp{font-family:'Epilogue',sans-serif !important;background-color:#0B0C0F !important;color:#E2DDD6 !important}
 [data-testid="stSidebar"],[data-testid="collapsedControl"]{display:none !important}
 .main .block-container{padding:0 !important;max-width:100% !important}
-h1{font-family:'Epilogue',sans-serif !important;font-size:26px !important;font-weight:800 !important;letter-spacing:-0.8px !important;color:#F0EBE3 !important;margin-bottom:4px !important;line-height:1.1 !important}
+
+/* ── Typography ─────────────────────────────────────────────── */
+h1{font-family:'Epilogue',sans-serif !important;font-size:24px !important;font-weight:800 !important;letter-spacing:-0.8px !important;color:#F0EBE3 !important;margin-bottom:2px !important;line-height:1.1 !important}
 h2{font-family:'Epilogue',sans-serif !important;font-size:15px !important;font-weight:700 !important;color:#C8C2BB !important}
-[data-testid="stMetric"]{background:#13151A !important;border:1px solid #1E2028 !important;border-radius:8px !important;padding:14px 18px !important}
-[data-testid="stMetric"]:hover{border-color:#2E3240 !important}
+h3{font-family:'Epilogue',sans-serif !important;font-size:14px !important;font-weight:700 !important;color:#E2DDD6 !important}
+
+/* ── Metric cards ───────────────────────────────────────────── */
+[data-testid="stMetric"]{background:linear-gradient(145deg,#12141A 0%,#0F1016 100%) !important;border:1px solid #1A1D26 !important;border-radius:10px !important;padding:16px 20px !important;transition:all .3s cubic-bezier(.4,0,.2,1) !important;position:relative !important;overflow:hidden !important}
+[data-testid="stMetric"]::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#5B8DEF,#7B6BEF,#9B6BEF);opacity:0;transition:opacity .3s ease}
+[data-testid="stMetric"]:hover{border-color:#252A36 !important;transform:translateY(-2px) !important;box-shadow:0 8px 24px rgba(0,0,0,.4),0 0 0 1px rgba(91,141,239,.06) !important}
+[data-testid="stMetric"]:hover::before{opacity:1}
 [data-testid="stMetricLabel"]{font-size:10px !important;font-weight:600 !important;text-transform:uppercase !important;letter-spacing:1.2px !important;color:#4A4D58 !important}
 [data-testid="stMetricValue"]{font-family:'IBM Plex Mono',monospace !important;font-size:24px !important;font-weight:500 !important;color:#F0EBE3 !important;line-height:1.2 !important}
-.stTextInput>div>div>input,.stSelectbox>div>div>div,.stMultiSelect>div>div>div{background-color:#13151A !important;border:1px solid #1E2028 !important;border-radius:6px !important;color:#E2DDD6 !important;font-family:'Epilogue',sans-serif !important}
-.stTextInput>div>div>input:focus{border-color:#E87B2A !important;box-shadow:0 0 0 2px rgba(232,123,42,.12) !important}
+
+/* ── Inputs ─────────────────────────────────────────────────── */
+.stTextInput>div>div>input,.stSelectbox>div>div>div,.stMultiSelect>div>div>div{background-color:#0F1016 !important;border:1px solid #1A1D26 !important;border-radius:8px !important;color:#E2DDD6 !important;font-family:'Epilogue',sans-serif !important;transition:all .25s ease !important}
+.stTextInput>div>div>input:focus{border-color:#5B8DEF !important;box-shadow:0 0 0 3px rgba(91,141,239,.1),0 0 20px rgba(91,141,239,.05) !important}
 .stTextInput label,.stSelectbox label,.stSlider label,.stMultiSelect label{font-size:10px !important;font-weight:700 !important;text-transform:uppercase !important;letter-spacing:1.2px !important;color:#4A4D58 !important}
-.stButton>button[kind="primary"]{background:#E87B2A !important;color:#0D0E11 !important;border:none !important;border-radius:6px !important;font-family:'Epilogue',sans-serif !important;font-weight:700 !important;font-size:13px !important}
-.stButton>button[kind="primary"]:hover{opacity:.88 !important}
-.stButton>button[kind="secondary"]{background:#13151A !important;color:#C8C2BB !important;border:1px solid #1E2028 !important;border-radius:6px !important;font-family:'Epilogue',sans-serif !important;font-weight:600 !important;font-size:13px !important}
-.stButton>button[kind="secondary"]:hover{border-color:#E87B2A !important;color:#E87B2A !important}
-[data-testid="stDownloadButton"] button{background:#13151A !important;color:#C8C2BB !important;border:1px solid #1E2028 !important;border-radius:6px !important;font-family:'Epilogue',sans-serif !important;font-weight:600 !important;font-size:13px !important}
-[data-testid="stDownloadButton"] button:hover{border-color:#E87B2A !important;color:#E87B2A !important}
-[data-testid="stDataFrame"]{border:1px solid #1E2028 !important;border-radius:8px !important;overflow:hidden !important}
-[data-testid="stDataFrame"] th{background-color:#13151A !important;color:#4A4D58 !important;font-family:'IBM Plex Mono',monospace !important;font-size:10px !important;text-transform:uppercase !important;letter-spacing:1px !important}
-[data-testid="stDataFrame"] td{color:#C8C2BB !important;font-family:'IBM Plex Mono',monospace !important;font-size:12px !important;background-color:#0D0E11 !important}
-[data-testid="stDataFrame"] tr:hover td{background-color:#13151A !important}
-.stSuccess{background:#0A1A10 !important;border:1px solid #1A4228 !important;border-left:3px solid #2ECC71 !important;border-radius:6px !important;color:#7DFAB8 !important}
-.stError{background:#1A0A0A !important;border:1px solid #4A1A1A !important;border-left:3px solid #E84C4C !important;border-radius:6px !important}
-.stInfo{background:#0D0F1A !important;border:1px solid #1A1E3A !important;border-left:3px solid #4A7CFF !important;border-radius:6px !important;color:#8FA8FF !important}
-.stWarning{background:#1A1200 !important;border:1px solid #3A2E00 !important;border-left:3px solid #E8C32A !important;border-radius:6px !important;color:#F5D87A !important}
+textarea{background-color:#0F1016 !important;border:1px solid #1A1D26 !important;border-radius:8px !important;color:#E2DDD6 !important;transition:border-color .25s ease !important}
+textarea:focus{border-color:#5B8DEF !important;box-shadow:0 0 0 3px rgba(91,141,239,.1) !important}
+
+/* ── Buttons ────────────────────────────────────────────────── */
+.stButton>button{transition:all .25s cubic-bezier(.4,0,.2,1) !important;position:relative !important;overflow:hidden !important}
+.stButton>button[kind="primary"]{background:linear-gradient(135deg,#5B8DEF 0%,#7B6BEF 50%,#9B6BEF 100%) !important;background-size:200% 200% !important;color:#fff !important;border:none !important;border-radius:8px !important;font-family:'Epilogue',sans-serif !important;font-weight:700 !important;font-size:13px !important;box-shadow:0 2px 8px rgba(91,141,239,.2) !important}
+.stButton>button[kind="primary"]:hover{box-shadow:0 6px 20px rgba(91,141,239,.35),0 0 40px rgba(91,141,239,.1) !important;transform:translateY(-1px) !important}
+.stButton>button[kind="primary"]:active{transform:translateY(0) !important;box-shadow:0 2px 6px rgba(91,141,239,.2) !important}
+.stButton>button[kind="secondary"]{background:#0F1016 !important;color:#C8C2BB !important;border:1px solid #1A1D26 !important;border-radius:8px !important;font-family:'Epilogue',sans-serif !important;font-weight:600 !important;font-size:13px !important}
+.stButton>button[kind="secondary"]:hover{border-color:#5B8DEF !important;color:#5B8DEF !important;box-shadow:0 4px 12px rgba(91,141,239,.1) !important;transform:translateY(-1px) !important}
+.stButton>button[kind="tertiary"]{transition:all .2s ease !important}
+.stButton>button[kind="tertiary"]:hover{color:#5B8DEF !important}
+
+/* ── Download button ────────────────────────────────────────── */
+[data-testid="stDownloadButton"] button{background:#0F1016 !important;color:#C8C2BB !important;border:1px solid #1A1D26 !important;border-radius:8px !important;font-family:'Epilogue',sans-serif !important;font-weight:600 !important;font-size:13px !important;transition:all .25s cubic-bezier(.4,0,.2,1) !important}
+[data-testid="stDownloadButton"] button:hover{border-color:#5B8DEF !important;color:#5B8DEF !important;transform:translateY(-1px) !important;box-shadow:0 4px 12px rgba(91,141,239,.1) !important}
+
+/* ── DataFrames ─────────────────────────────────────────────── */
+[data-testid="stDataFrame"]{border:1px solid #1A1D26 !important;border-radius:10px !important;overflow:hidden !important;box-shadow:0 4px 16px rgba(0,0,0,.2) !important}
+[data-testid="stDataFrame"] th{background-color:#12141A !important;color:#4A4D58 !important;font-family:'IBM Plex Mono',monospace !important;font-size:10px !important;text-transform:uppercase !important;letter-spacing:1px !important;border-bottom:1px solid #1A1D26 !important}
+[data-testid="stDataFrame"] td{color:#C8C2BB !important;font-family:'IBM Plex Mono',monospace !important;font-size:12px !important;background-color:#0B0C0F !important}
+[data-testid="stDataFrame"] tr:hover td{background-color:#12141A !important}
+
+/* ── Alerts ─────────────────────────────────────────────────── */
+.stSuccess{background:linear-gradient(135deg,#0A1A10,#0D1A12) !important;border:1px solid #1A4228 !important;border-left:3px solid #2ECC71 !important;border-radius:8px !important;color:#7DFAB8 !important}
+.stError{background:linear-gradient(135deg,#1A0A0A,#1A0D0D) !important;border:1px solid #4A1A1A !important;border-left:3px solid #E84C4C !important;border-radius:8px !important}
+.stInfo{background:linear-gradient(135deg,#0D0F1A,#0F1020) !important;border:1px solid #1A1E3A !important;border-left:3px solid #5B8DEF !important;border-radius:8px !important;color:#8FA8FF !important}
+.stWarning{background:linear-gradient(135deg,#1A1200,#1A1400) !important;border:1px solid #3A2E00 !important;border-left:3px solid #E8C32A !important;border-radius:8px !important;color:#F5D87A !important}
+
+/* ── Toggles & checkboxes ───────────────────────────────────── */
 .stToggle label,.stCheckbox label{color:#C8C2BB !important;font-size:14px !important}
-.stProgress>div>div{background:#E87B2A !important;border-radius:2px !important}
+
+/* ── Progress bar ───────────────────────────────────────────── */
+.stProgress>div>div{background:linear-gradient(90deg,#5B8DEF,#7B6BEF,#9B6BEF) !important;border-radius:3px !important;box-shadow:0 0 10px rgba(91,141,239,.2) !important}
+.stProgress>div{background:#12141A !important;border-radius:3px !important}
+
+/* ── Captions ───────────────────────────────────────────────── */
 .stCaption{color:#4A4D58 !important;font-family:'IBM Plex Mono',monospace !important;font-size:11px !important}
-hr{border-color:#1E2028 !important;margin:20px 0 !important}
-.stExpander{border:1px solid #1E2028 !important;border-radius:8px !important;background:#13151A !important}
-[data-testid="stTabs"] [role="tablist"]{border-bottom:1px solid #1E2028 !important;gap:0 !important;background:transparent !important;padding:0 40px !important}
-[data-testid="stTabs"] button[role="tab"]{font-family:'Epilogue',sans-serif !important;font-size:13px !important;font-weight:600 !important;color:#4A4D58 !important;padding:14px 22px !important;border-radius:0 !important;border-bottom:2px solid transparent !important;background:transparent !important}
-[data-testid="stTabs"] button[role="tab"][aria-selected="true"]{color:#F0EBE3 !important;border-bottom:2px solid #E87B2A !important}
+
+/* ── Dividers ───────────────────────────────────────────────── */
+hr{border-color:#1A1D26 !important;margin:24px 0 !important}
+
+/* ── Expanders ──────────────────────────────────────────────── */
+.stExpander{border:1px solid #1A1D26 !important;border-radius:10px !important;background:linear-gradient(145deg,#12141A 0%,#0F1016 100%) !important;transition:all .25s ease !important}
+.stExpander:hover{border-color:#252A36 !important;box-shadow:0 4px 16px rgba(0,0,0,.2) !important}
+
+/* ── Tabs ───────────────────────────────────────────────────── */
+[data-testid="stTabs"] [role="tablist"]{border-bottom:1px solid #1A1D26 !important;gap:0 !important;background:transparent !important;padding:0 40px !important}
+[data-testid="stTabs"] button[role="tab"]{font-family:'Epilogue',sans-serif !important;font-size:13px !important;font-weight:600 !important;color:#4A4D58 !important;padding:14px 24px !important;border-radius:0 !important;border-bottom:2px solid transparent !important;background:transparent !important;transition:all .25s ease !important;position:relative !important}
+[data-testid="stTabs"] button[role="tab"]:hover{color:#9BA3B0 !important}
+[data-testid="stTabs"] button[role="tab"][aria-selected="true"]{color:#F0EBE3 !important;border-bottom:2px solid #5B8DEF !important;background:transparent !important}
 [data-testid="stTabs"] [role="tabpanel"]{padding:28px 40px 0 !important}
-.section-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#4A4D58;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #1E2028}
-.a2-banner{background:linear-gradient(135deg,#13151A 0%,#1A1008 100%);border:1px solid #2E2010;border-left:3px solid #E87B2A;border-radius:8px;padding:14px 18px;margin-bottom:18px}
-.a2-banner .t{font-size:13px;font-weight:700;color:#E87B2A;margin-bottom:2px}
+
+/* ── File uploader ──────────────────────────────────────────── */
+[data-testid="stFileUploader"]{border:1px dashed #1A1D26 !important;border-radius:10px !important;background:#0B0C0F !important;transition:all .25s ease !important}
+[data-testid="stFileUploader"]:hover{border-color:#5B8DEF !important;background:#0D0F16 !important;box-shadow:0 0 20px rgba(91,141,239,.05) !important}
+[data-testid="stFileUploader"] button{transition:all .2s ease !important}
+
+/* ── Sliders ────────────────────────────────────────────────── */
+[data-testid="stSlider"] [role="slider"]{background:linear-gradient(135deg,#5B8DEF,#7B6BEF) !important;border:none !important;box-shadow:0 0 8px rgba(91,141,239,.3) !important}
+
+/* ── Radio / selectbox ──────────────────────────────────────── */
+.stRadio>div{gap:8px !important}
+
+/* ── Custom classes ─────────────────────────────────────────── */
+.section-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#4A4D58;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #1A1D26}
+.a2-banner{background:linear-gradient(135deg,#12141A 0%,#0F1328 100%);border:1px solid #1A1E3A;border-left:3px solid #5B8DEF;border-radius:10px;padding:14px 18px;margin-bottom:18px}
+.a2-banner .t{font-size:13px;font-weight:700;color:#5B8DEF;margin-bottom:2px}
 .a2-banner .d{font-size:12px;color:#6A6560}
-.export-box{margin-top:20px;padding:18px 22px;background:#13151A;border:1px solid #1E2028;border-radius:8px}
+.export-box{margin-top:20px;padding:18px 22px;background:#12141A;border:1px solid #1A1D26;border-radius:10px}
 .export-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#4A4D58;margin-bottom:14px}
+
+/* ── Scrollbar ──────────────────────────────────────────────── */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#1A1D26;border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:#2E3240}
+
+/* ── Dialog / popups ────────────────────────────────────────── */
+[data-testid="stModal"]{background:#0B0C0F !important;border:1px solid #1A1D26 !important;border-radius:12px !important}
+div[data-modal-container]{backdrop-filter:blur(4px) !important}
+
+/* ── Tooltips ───────────────────────────────────────────────── */
+[data-testid="stTooltipIcon"]{color:#4A4D58 !important}
+
+/* ── Link buttons ───────────────────────────────────────────── */
+.stLinkButton a{transition:all .2s ease !important;border-radius:8px !important}
 </style>
 """, unsafe_allow_html=True)
 
@@ -95,21 +164,25 @@ hr{border-color:#1E2028 !important;margin:20px 0 !important}
 # ── Écran d'activation de licence ────────────────────────────────────────────
 if not is_activated():
     st.markdown("""
-    <div style="max-width:600px;margin:80px auto;text-align:center">
-        <div style="font-size:32px;font-weight:900;color:#F0EBE3;letter-spacing:-1px;margin-bottom:4px">
-            ◈ leads<span style="color:#E87B2A">.</span>engine
+    <div style="max-width:600px;margin:100px auto 0;text-align:center">
+        <div style="margin-bottom:16px">
+            <svg viewBox="0 0 40 40" fill="none" style="width:56px;height:56px"><rect x="5" y="5" width="4.5" height="26" rx="1.2" fill="#e4e4e7"/><rect x="5" y="27" width="14" height="4.5" rx="1.2" fill="#e4e4e7"/><rect x="17" y="5" width="18" height="4" rx="1.2" fill="#5B8DEF"/><rect x="17" y="16" width="15" height="4" rx="1.2" fill="#7B6BEF"/><rect x="17" y="27" width="12" height="4" rx="1.2" fill="#9B6BEF"/></svg>
         </div>
-        <div style="font-size:12px;color:#4A4D58;letter-spacing:2px;text-transform:uppercase;margin-bottom:40px">
+        <div style="font-size:36px;font-weight:900;color:#F0EBE3;letter-spacing:-1.5px;margin-bottom:4px">
+            LeadsEngine
+        </div>
+        <div style="font-size:11px;color:#3A3D46;letter-spacing:2.5px;text-transform:uppercase;margin-bottom:48px">
             Activation de la licence
         </div>
+        <div style="height:2px;width:60px;margin:0 auto 40px;background:linear-gradient(90deg,#5B8DEF,#7B6BEF,#9B6BEF);border-radius:1px;opacity:.5"></div>
     </div>
     """, unsafe_allow_html=True)
 
     st.markdown("""
     <div style="max-width:520px;margin:0 auto">
-        <p style="color:#C8C2BB;font-size:14px;text-align:center;margin-bottom:30px">
+        <p style="color:#6B7280;font-size:13px;text-align:center;margin-bottom:30px">
             Entre ta clé de licence pour activer l'application.<br>
-            <span style="color:#4A4D58;font-size:12px">Format : LE-STD-XXXX-XXXX ou LE-PRO-XXXX-XXXX</span>
+            <span style="color:#3A3D46;font-size:11px;font-family:'IBM Plex Mono',monospace">Format : LE-STD-XXXX-XXXX ou LE-PRO-XXXX-XXXX</span>
         </p>
     </div>
     """, unsafe_allow_html=True)
@@ -132,7 +205,7 @@ if not is_activated():
     st.markdown("""
     <div style="max-width:520px;margin:30px auto 0;text-align:center">
         <a href="https://leadsengine.netlify.app" target="_blank"
-           style="color:#E87B2A;font-size:13px;text-decoration:none;font-weight:600">
+           style="color:#5B8DEF;font-size:13px;text-decoration:none;font-weight:600">
             Acheter une licence sur leadsengine.netlify.app
         </a>
     </div>
@@ -150,8 +223,11 @@ _user_cfg = load_user_config()
 if not _user_cfg.get("setup_done"):
     st.markdown("""
     <div style="max-width:600px;margin:80px auto;text-align:center">
+        <div style="margin-bottom:12px">
+            <svg viewBox="0 0 40 40" fill="none" style="width:48px;height:48px"><rect x="5" y="5" width="4.5" height="26" rx="1.2" fill="#e4e4e7"/><rect x="5" y="27" width="14" height="4.5" rx="1.2" fill="#e4e4e7"/><rect x="17" y="5" width="18" height="4" rx="1.2" fill="#5B8DEF"/><rect x="17" y="16" width="15" height="4" rx="1.2" fill="#7B6BEF"/><rect x="17" y="27" width="12" height="4" rx="1.2" fill="#9B6BEF"/></svg>
+        </div>
         <div style="font-size:32px;font-weight:900;color:#F0EBE3;letter-spacing:-1px;margin-bottom:4px">
-            ◈ leads<span style="color:#E87B2A">.</span>engine
+            LeadsEngine
         </div>
         <div style="font-size:12px;color:#4A4D58;letter-spacing:2px;text-transform:uppercase;margin-bottom:40px">
             Configuration initiale
@@ -791,18 +867,23 @@ COLS_VENDEUR = {
 
 # ── Header ────────────────────────────────────────────────────────────────────
 stats = db_stats()
-st.markdown("<div style='padding:22px 40px 0'>", unsafe_allow_html=True)
-c_logo, c_stats, c_site, c_quit = st.columns([1, 3, 0.5, 0.4])
+_ver_str = (ROOT / "version.txt").read_text(encoding="utf-8").strip() if (ROOT / "version.txt").exists() else "?"
+_logo_svg = '<svg viewBox="0 0 40 40" fill="none" style="width:30px;height:30px;vertical-align:middle;margin-right:10px"><rect x="5" y="5" width="4.5" height="26" rx="1.2" fill="#e4e4e7"/><rect x="5" y="27" width="14" height="4.5" rx="1.2" fill="#e4e4e7"/><rect x="17" y="5" width="18" height="4" rx="1.2" fill="#5B8DEF"/><rect x="17" y="16" width="15" height="4" rx="1.2" fill="#7B6BEF"/><rect x="17" y="27" width="12" height="4" rx="1.2" fill="#9B6BEF"/></svg>'
+_tier_bg = "linear-gradient(135deg,#5B8DEF,#7B6BEF)" if _IS_PRO else "#2A2D36"
+
+st.markdown("<div style='padding:20px 40px 0'>", unsafe_allow_html=True)
+c_logo, c_stats, c_site, c_quit = st.columns([1.2, 3, 0.5, 0.3])
 with c_logo:
     st.markdown(
-        '<div style="font-family:Epilogue,sans-serif;font-size:18px;font-weight:900;color:#F0EBE3;letter-spacing:-0.5px">'
-        '◈ leads<span style="color:#E87B2A">.</span>engine</div>'
-        '<div style="font-size:10px;color:#4A4D58;letter-spacing:2px;text-transform:uppercase;margin-top:3px">'
-        'Prospection automatisée'
-        f' <span style="color:#2E3240;margin-left:8px">v{(ROOT / "version.txt").read_text(encoding="utf-8").strip() if (ROOT / "version.txt").exists() else "?"}</span>'
-        f' <span style="background:{"#E87B2A" if _IS_PRO else "#4A4D58"};color:#0D0E11;font-size:9px;font-weight:800;padding:2px 6px;border-radius:3px;margin-left:6px">{_TIER.upper()}</span>'
-        '</div>',
-        unsafe_allow_html=True
+        f'<div style="display:flex;align-items:center">'
+        f'{_logo_svg}'
+        f'<div>'
+        f'<div style="font-family:Epilogue,sans-serif;font-size:20px;font-weight:900;color:#F0EBE3;letter-spacing:-0.5px;line-height:1">LeadsEngine</div>'
+        f'<div style="font-size:10px;color:#3A3D46;letter-spacing:1.5px;text-transform:uppercase;margin-top:4px">'
+        f'v{_ver_str}'
+        f' <span style="background:{_tier_bg};color:#fff;font-size:8px;font-weight:800;padding:2px 7px;border-radius:4px;margin-left:6px;letter-spacing:0.5px">{_TIER.upper()}</span>'
+        f'</div></div></div>',
+        unsafe_allow_html=True,
     )
 with c_stats:
     if stats:
@@ -813,11 +894,10 @@ with c_stats:
         cx4.metric("Leads qualifiés", stats.get("qualifies", 0))
 with c_site:
     st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
-    st.link_button("↗ Site web", "https://leadsengine.netlify.app", type="secondary")
+    st.link_button("↗ Site", "https://leadsengine.netlify.app", type="secondary")
 with c_quit:
     st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
-    if st.button("✕ Fermer", type="secondary", key="btn_quit_header"):
-        # Ferme l'onglet navigateur via JavaScript
+    if st.button("✕", type="secondary", key="btn_quit_header"):
         st.markdown(
             '<script>window.open("","_self");window.close();</script>',
             unsafe_allow_html=True,
@@ -828,7 +908,10 @@ with c_quit:
         else:
             _os.kill(_os.getpid(), signal.SIGTERM)
 st.markdown("</div>", unsafe_allow_html=True)
-st.markdown("<div style='height:1px;background:#1E2028;margin:16px 0 0'></div>", unsafe_allow_html=True)
+st.markdown(
+    '<div style="height:2px;background:linear-gradient(90deg,#5B8DEF 0%,#7B6BEF 40%,#9B6BEF 70%,transparent 100%);margin:14px 0 0;opacity:.4"></div>',
+    unsafe_allow_html=True,
+)
 
 
 # ── Bannière setup si configuration incomplète ────────────────────────────────
@@ -850,8 +933,8 @@ _upd = st.session_state.get("update_info")
 if _upd:
     _size_mb = _upd.get("size", 0) / (1024 * 1024)
     st.markdown(
-        f'<div style="background:#1A1200;border:1px solid #3A2E00;border-left:3px solid #E8C32A;'
-        f'border-radius:8px;padding:12px 18px;margin-bottom:12px;display:flex;'
+        f'<div style="background:linear-gradient(135deg,#1A1200,#1A1400);border:1px solid #3A2E00;border-left:3px solid #E8C32A;'
+        f'border-radius:10px;padding:14px 20px;margin:0 40px 12px;display:flex;'
         f'align-items:center;justify-content:space-between">'
         f'<span style="color:#F5D87A;font-size:13px;font-weight:600">'
         f'Nouvelle version {_upd["version"]} disponible ({_size_mb:.0f} Mo)</span>'
@@ -874,11 +957,10 @@ if _upd:
             st.error("Erreur lors de la mise à jour. Consulte errors.log.")
 
 # ── Navigation ────────────────────────────────────────────────────────────────
-tab1, tab2, tab3, tab4, tab5, tab7, tab6 = st.tabs([
+tab1, tab2, tab3, tab5, tab7, tab6 = st.tabs([
     "🚀  Scraping",
     "🔍  Analyse sites",
     "📋  Mes recherches",
-    "🗂  CRM",
     "🌐  Tous les leads",
     "📇  Fiches Leads",
     "⚙️  Configuration",
@@ -890,7 +972,7 @@ tab1, tab2, tab3, tab4, tab5, tab7, tab6 = st.tabs([
 # ══════════════════════════════════════════════════════════════════════════════
 with tab1:
     st.title("Scraping")
-    st.markdown('<p style="color:#4A4D58;font-size:13px;margin-bottom:24px">Collecte les entreprises, dirigeants et données du registre national.</p>', unsafe_allow_html=True)
+    st.markdown('<p style="color:#4A4D58;font-size:12px;margin-bottom:20px;letter-spacing:0.3px">Collecte les entreprises, dirigeants et données du registre national.</p>', unsafe_allow_html=True)
 
     col1, col2 = st.columns([3, 2], gap="large")
     with col1:
@@ -1008,7 +1090,7 @@ with tab1:
 # ══════════════════════════════════════════════════════════════════════════════
 with tab2:
     st.title("Analyse des sites web")
-    st.markdown('<p style="color:#4A4D58;font-size:13px;margin-bottom:24px">Extrait CMS, hébergeur, vitesse, email, agence et signaux SEO. 100% gratuit.</p>', unsafe_allow_html=True)
+    st.markdown('<p style="color:#4A4D58;font-size:12px;margin-bottom:20px;letter-spacing:0.3px">Extrait CMS, hébergeur, vitesse, email, agence et signaux SEO. 100% gratuit.</p>', unsafe_allow_html=True)
 
     db = ROOT / config.db_path
     if not db.exists():
@@ -1046,10 +1128,10 @@ with tab2:
                 reste = max(0, n_site - n_done) if only_new else n_site
                 _extra_time = 0
                 st.markdown(
-                    f'<div style="margin-top:24px;background:#13151A;border:1px solid #1E2028;border-radius:8px;padding:14px 18px">'
+                    f'<div style="margin-top:24px;background:linear-gradient(145deg,#12141A,#0F1016);border:1px solid #1A1D26;border-radius:10px;padding:16px 20px">'
                     f'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:#4A4D58;margin-bottom:6px">Temps estimé</div>'
                     f'<div style="font-family:IBM Plex Mono,monospace;font-size:22px;color:#E87B2A">~{reste*(delay+40)/60:.0f} min</div>'
-                    f'<div style="font-size:11px;color:#4A4D58;margin-top:2px">{reste} sites</div></div>',
+                    f'<div style="font-size:11px;color:#3A3D46;margin-top:2px">{reste} sites</div></div>',
                     unsafe_allow_html=True
                 )
 
@@ -1264,7 +1346,7 @@ with tab2:
             with col_cb:
                 reste_c = max(0, n_site_c - n_done_c) if only_new_c else n_site_c
                 st.markdown(
-                    f'<div style="margin-top:24px;background:#13151A;border:1px solid #1E2028;border-radius:8px;padding:14px 18px">'
+                    f'<div style="margin-top:24px;background:linear-gradient(145deg,#12141A,#0F1016);border:1px solid #1A1D26;border-radius:10px;padding:16px 20px">'
                     f'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:#4A4D58;margin-bottom:6px">Temps estimé</div>'
                     f'<div style="font-family:IBM Plex Mono,monospace;font-size:22px;color:#E87B2A">~{reste_c*(delay_c+20)/60:.0f} min</div>'
                     f'<div style="font-size:11px;color:#4A4D58;margin-top:2px">{reste_c} sites</div></div>',
@@ -1374,7 +1456,7 @@ with tab2:
 # ══════════════════════════════════════════════════════════════════════════════
 with tab3:
     st.title("Mes recherches")
-    st.markdown('<p style="color:#4A4D58;font-size:13px;margin-bottom:24px">Chaque session est isolée. Filtre, explore et exporte.</p>', unsafe_allow_html=True)
+    st.markdown('<p style="color:#4A4D58;font-size:12px;margin-bottom:20px;letter-spacing:0.3px">Chaque session est isolée. Filtre, explore et exporte.</p>', unsafe_allow_html=True)
 
     db = ROOT / config.db_path
     if not db.exists():
@@ -1589,109 +1671,7 @@ with tab3:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# TAB 4 — CRM
-# ══════════════════════════════════════════════════════════════════════════════
-with tab4:
-    if not _IS_PRO:
-        st.markdown(
-            '<div style="text-align:center;padding:80px 20px">'
-            '<div style="font-size:48px;margin-bottom:16px">🔒</div>'
-            '<div style="font-size:18px;font-weight:700;color:#F0EBE3;margin-bottom:8px">Fonctionnalité Pro</div>'
-            '<div style="font-size:13px;color:#4A4D58">L\'onglet CRM est réservé à la licence Pro.</div>'
-            '<a href="https://leadsengine.netlify.app" target="_blank" '
-            'style="display:inline-block;margin-top:20px;background:#E87B2A;color:#0D0E11;padding:8px 20px;'
-            'border-radius:6px;font-weight:700;font-size:13px;text-decoration:none">Passer en Pro</a>'
-            '</div>',
-            unsafe_allow_html=True,
-        )
-    if _IS_PRO:
-      try:
-        stats_crm = crm_stats()
-
-        st.title("Fichiers CRM")
-        st.caption("Les entreprises présentes dans ces fichiers sont exclues des prochains scrapings.")
-
-        m1, m2 = st.columns(2)
-        m1.metric("Fichiers chargés",    stats_crm["fichiers"])
-        m2.metric("Entreprises connues", stats_crm["entreprises"])
-
-        st.divider()
-        st.subheader("Ajouter un fichier")
-        uploaded = st.file_uploader(
-            "Ajouter", type=["xlsx", "csv"],
-            accept_multiple_files=True, key="crm_upload",
-            label_visibility="collapsed",
-        )
-        if uploaded:
-            CRM_DIR.mkdir(exist_ok=True)
-            n_imp = 0
-            n_total = 0
-            for f in uploaded:
-                dest = CRM_DIR / f.name
-                raw = f.read()
-                # Compter le total avant import pour calculer les doublons ignorés
-                try:
-                    import io as _io
-                    _df_count = pd.read_excel(_io.BytesIO(raw)) if f.name.endswith(".xlsx") else pd.read_csv(_io.BytesIO(raw))
-                    n_total += len(_df_count)
-                except Exception:
-                    log.warning("Comptage lignes CRM echoue pour '%s'", f.name, exc_info=True)
-                dest.write_bytes(raw)
-                n_imp += _import_crm_file_to_db(dest)
-            n_skip = n_total - n_imp
-            msg = f"{len(uploaded)} fichier(s) ajouté(s) · {n_imp} entreprise(s) intégrée(s)"
-            if n_skip > 0:
-                msg += f" · {n_skip} doublon(s) ignoré(s)"
-            st.success(msg + ".")
-            st.rerun()
-
-        st.divider()
-        st.subheader("Fichiers actifs")
-        if stats_crm["liste"]:
-            for item in stats_crm["liste"]:
-                c_n, c_nb, c_s, c_d = st.columns([4, 1, 1, 1])
-                c_n.write(f"📄 {item['nom']}")
-                c_nb.caption(f"{item['nb']} lignes")
-                if c_s.button("Synchroniser", key=f"sync_{item['nom']}", type="secondary"):
-                    n = _import_crm_file_to_db(Path(item["path"]))
-                    st.success(f"{n} entreprise(s) synchronisée(s).")
-                    st.rerun()
-                if c_d.button("Supprimer", key=f"del_{item['nom']}", type="secondary"):
-                    Path(item["path"]).unlink(missing_ok=True)
-                    st.success(f"« {item['nom']} » supprimé.")
-                    st.rerun()
-        else:
-            st.info("Aucun fichier CRM actif.")
-
-        st.divider()
-        st.subheader("Comparer un fichier")
-        st.caption("Vérifie lesquelles de ces entreprises sont déjà dans ton CRM — sans l'ajouter à la base.")
-        cmp_file = st.file_uploader(
-            "Comparer", type=["xlsx", "csv"],
-            key="crm_compare", label_visibility="collapsed",
-        )
-        if cmp_file:
-            res = compare_against_crm(cmp_file, cmp_file.name)
-            if res.get("error"):
-                st.error(res["error"])
-            else:
-                r1, r2, r3 = st.columns(3)
-                r1.metric("Total analysé",    res["total"])
-                r2.metric("Déjà dans le CRM", len(res["doublons"]))
-                r3.metric("Nouveaux",          len(res["nouveaux"]))
-                if res["doublons"]:
-                    st.markdown("**Doublons**")
-                    st.dataframe(pd.DataFrame(res["doublons"]), use_container_width=True, hide_index=True)
-                if res["nouveaux"]:
-                    st.markdown("**Nouveaux**")
-                    st.dataframe(pd.DataFrame(res["nouveaux"]), use_container_width=True, hide_index=True)
-      except Exception as e:
-        log.error("Erreur onglet CRM", exc_info=True)
-        st.error(f"Erreur CRM : {e}")
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# TAB 5 — Tous les leads
+# TAB 5 — Tous les leads (+ CRM intégré)
 # ══════════════════════════════════════════════════════════════════════════════
 with tab5:
     try:
@@ -1782,6 +1762,253 @@ with tab5:
                         st.session_state.pop("_dup_found", None)
                         st.success(f"{nb_del} doublon(s) supprimé(s).")
                         st.rerun()
+
+            # ── Envoi groupé d'emails ──────────────────────────────────
+            with st.expander("✉️  Envoi groupé d'emails"):
+                if not _IS_PRO:
+                    st.markdown(
+                        '<div style="text-align:center;padding:20px">'
+                        '<div style="font-size:24px;margin-bottom:8px">🔒</div>'
+                        '<div style="font-size:12px;color:#4A4D58">Fonctionnalité réservée à la licence Pro.</div></div>',
+                        unsafe_allow_html=True,
+                    )
+                elif not is_gmail_configured():
+                    st.info("Configure Gmail dans l'onglet **Configuration** pour envoyer des emails.")
+                else:
+                    _df_with_email = df_f[df_f["email"].notna() & (df_f["email"].str.strip() != "")].copy()
+                    if _df_with_email.empty:
+                        st.info("Aucun lead avec email dans la sélection actuelle.")
+                    else:
+                        st.caption(f"{len(_df_with_email)} leads avec email dans la sélection filtrée.")
+
+                        _bulk_options = {f"{row.get('company_name', '?')} — {row.get('email', '')}": row.get("email", "")
+                                         for _, row in _df_with_email.iterrows() if row.get("email")}
+                        _bulk_selected = st.multiselect(
+                            "Destinataires",
+                            options=list(_bulk_options.keys()),
+                            default=None,
+                            key="bulk_email_select",
+                            help="Sélectionne les leads à qui envoyer l'email",
+                        )
+                        _bulk_emails = [_bulk_options[k] for k in _bulk_selected if k in _bulk_options]
+
+                        if _bulk_emails:
+                            st.markdown(
+                                f'<div style="font-size:11px;color:#5B8DEF;margin-bottom:12px">'
+                                f'{len(_bulk_emails)} destinataire(s) sélectionné(s)</div>',
+                                unsafe_allow_html=True,
+                            )
+                        _bulk_subj = st.text_input("Objet", key="bulk_subj", placeholder="Objet de l'email…")
+                        _bulk_body = st.text_area(
+                            "Message",
+                            key="bulk_body",
+                            height=150,
+                            placeholder="Bonjour,\n\nJe me permets de vous contacter…\n\nVariables : {company_name}, {owner_name}, {city}, {sector}",
+                        )
+                        st.caption("Variables disponibles : `{company_name}`, `{owner_name}`, `{city}`, `{sector}`, `{website_url}`")
+                        _bulk_html = st.checkbox("Envoyer en HTML", key="bulk_html")
+                        _bulk_delay = st.slider("Délai entre envois (sec)", 3, 30, 5, key="bulk_delay")
+
+                        if st.button(f"Envoyer à {len(_bulk_emails)} lead(s)", type="primary",
+                                     use_container_width=True, key="btn_bulk_send",
+                                     disabled=not _bulk_emails or not _bulk_subj.strip() or not _bulk_body.strip()):
+                            _bulk_prog = st.progress(0, text="Envoi en cours…")
+                            _bulk_ok = 0
+                            _bulk_fail = 0
+                            for _bi, _be in enumerate(_bulk_emails):
+                                _lead_row = _df_with_email[_df_with_email["email"] == _be]
+                                if _lead_row.empty:
+                                    _bulk_fail += 1
+                                    continue
+                                _lr = _lead_row.iloc[0]
+                                _personalized_body = _bulk_body.replace("{company_name}", str(_lr.get("company_name") or ""))
+                                _personalized_body = _personalized_body.replace("{owner_name}", str(_lr.get("owner_name") or ""))
+                                _personalized_body = _personalized_body.replace("{city}", str(_lr.get("city") or ""))
+                                _personalized_body = _personalized_body.replace("{sector}", str(_lr.get("sector") or ""))
+                                _personalized_body = _personalized_body.replace("{website_url}", str(_lr.get("website_url") or ""))
+                                _personalized_subj = _bulk_subj.replace("{company_name}", str(_lr.get("company_name") or ""))
+                                _personalized_subj = _personalized_subj.replace("{city}", str(_lr.get("city") or ""))
+
+                                _ok_b, _msg_b = send_email(_be, _personalized_subj, _personalized_body, html=_bulk_html)
+                                if _ok_b:
+                                    _bulk_ok += 1
+                                    _hist_entry = f"{datetime.now().strftime('%d/%m/%Y %H:%M')} — Mail envoyé (groupé) : {_personalized_subj}"
+                                    try:
+                                        _db_path = str(ROOT / config.db_path)
+                                        _hc = sqlite3.connect(_db_path)
+                                        _m = _hc.execute("SELECT id, lead_history, tags FROM leads WHERE email=? LIMIT 1", (_be,)).fetchone()
+                                        if _m:
+                                            _oh = str(_m[1] or "")
+                                            _ot = str(_m[2] or "")
+                                            _nh = (_oh + "\n" + _hist_entry).strip()
+                                            _ts = [t.strip() for t in _ot.split("|") if t.strip()]
+                                            if "Mail envoyé" not in _ts:
+                                                _ts.append("Mail envoyé")
+                                            _hc.execute("UPDATE leads SET lead_history=?, tags=?, updated_at=? WHERE id=?",
+                                                        (_nh, "|".join(_ts), datetime.now().isoformat(), _m[0]))
+                                            _hc.commit()
+                                        _hc.close()
+                                    except Exception:
+                                        pass
+                                else:
+                                    _bulk_fail += 1
+                                _bulk_prog.progress((_bi + 1) / len(_bulk_emails), text=f"Envoi {_bi + 1}/{len(_bulk_emails)}…")
+                                if _bi < len(_bulk_emails) - 1:
+                                    time.sleep(_bulk_delay)
+                            _bulk_prog.progress(1.0, text="Terminé")
+                            if _bulk_fail == 0:
+                                st.success(f"{_bulk_ok} email(s) envoyé(s) avec succès.")
+                            else:
+                                st.warning(f"{_bulk_ok} envoyé(s), {_bulk_fail} échoué(s).")
+                            st.rerun()
+
+            # ── Vérifier les réponses (toute la base) ─────────────────────
+            with st.expander("📬  Vérifier les réponses"):
+                if not is_gmail_configured():
+                    st.info("Configure Gmail dans l'onglet **Configuration** pour vérifier les réponses.")
+                else:
+                    st.caption("Scanne ta boîte Gmail pour trouver des réponses de leads en base.")
+                    _reply_days = st.slider("Chercher sur les derniers…", 7, 90, 30, key="reply_days", format="%d jours")
+                    if st.button("Lancer la vérification", type="primary", use_container_width=True, key="btn_check_all_replies"):
+                        _all_emails_db = df_all["email"].dropna().unique().tolist() if not df_all.empty else []
+                        _all_emails_db = [e.strip() for e in _all_emails_db if e.strip()]
+                        if not _all_emails_db:
+                            st.info("Aucun lead avec email en base.")
+                        else:
+                            with st.spinner(f"Vérification de {len(_all_emails_db)} adresses…"):
+                                _all_replies = check_replies(_all_emails_db, since_days=_reply_days)
+                            if not _all_replies:
+                                st.info("Aucune réponse trouvée.")
+                            else:
+                                _new_replies = 0
+                                _db_path = str(ROOT / config.db_path)
+                                _rc = sqlite3.connect(_db_path)
+                                for _rp in _all_replies:
+                                    _rp_email = _rp.get("email_match", "")
+                                    _rp_entry = f"{_rp['date']} — Réponse reçue : {_rp['subject']}"
+                                    _m = _rc.execute("SELECT id, lead_history, tags FROM leads WHERE email=? LIMIT 1", (_rp_email,)).fetchone()
+                                    if _m:
+                                        _oh = str(_m[1] or "")
+                                        if _rp_entry not in _oh:
+                                            _nh = (_oh + "\n" + _rp_entry).strip()
+                                            _ot = str(_m[2] or "")
+                                            _ts = [t.strip() for t in _ot.split("|") if t.strip()]
+                                            if "Réponse reçue" not in _ts:
+                                                _ts.append("Réponse reçue")
+                                            _rc.execute("UPDATE leads SET lead_history=?, tags=?, updated_at=? WHERE id=?",
+                                                        (_nh, "|".join(_ts), datetime.now().isoformat(), _m[0]))
+                                            _new_replies += 1
+                                _rc.commit()
+                                _rc.close()
+                                if _new_replies > 0:
+                                    st.success(f"{_new_replies} nouvelle(s) réponse(s) enregistrée(s) dans l'historique des leads.")
+                                    st.rerun()
+                                else:
+                                    st.info(f"{len(_all_replies)} réponse(s) trouvée(s), mais déjà enregistrées.")
+
+                                _reply_df = pd.DataFrame([
+                                    {"Lead": r.get("email_match", ""), "Objet": r.get("subject", ""), "Date": r.get("date", "")}
+                                    for r in _all_replies
+                                ])
+                                st.dataframe(_reply_df, use_container_width=True, hide_index=True)
+
+        # ── Fichiers CRM (intégré) ─────────────────────────────────────
+        st.divider()
+        with st.expander("🗂  Fichiers CRM"):
+            if not _IS_PRO:
+                st.markdown(
+                    '<div style="text-align:center;padding:30px 20px">'
+                    '<div style="font-size:32px;margin-bottom:10px">🔒</div>'
+                    '<div style="font-size:14px;font-weight:700;color:#F0EBE3;margin-bottom:6px">Fonctionnalité Pro</div>'
+                    '<div style="font-size:12px;color:#4A4D58">La gestion CRM est réservée à la licence Pro.</div>'
+                    '<a href="https://leadsengine.netlify.app" target="_blank" '
+                    'style="display:inline-block;margin-top:14px;background:linear-gradient(135deg,#5B8DEF,#7B6BEF);color:#fff;padding:6px 16px;'
+                    'border-radius:6px;font-weight:700;font-size:12px;text-decoration:none">Passer en Pro</a>'
+                    '</div>',
+                    unsafe_allow_html=True,
+                )
+            if _IS_PRO:
+                try:
+                    stats_crm = crm_stats()
+                    st.caption("Les entreprises présentes dans ces fichiers sont exclues des prochains scrapings.")
+
+                    m1, m2 = st.columns(2)
+                    m1.metric("Fichiers chargés",    stats_crm["fichiers"])
+                    m2.metric("Entreprises connues", stats_crm["entreprises"])
+
+                    st.divider()
+                    st.markdown("**Ajouter un fichier**")
+                    uploaded = st.file_uploader(
+                        "Ajouter", type=["xlsx", "csv"],
+                        accept_multiple_files=True, key="crm_upload",
+                        label_visibility="collapsed",
+                    )
+                    if uploaded:
+                        CRM_DIR.mkdir(exist_ok=True)
+                        n_imp = 0
+                        n_total = 0
+                        for f in uploaded:
+                            dest = CRM_DIR / f.name
+                            raw = f.read()
+                            try:
+                                import io as _io
+                                _df_count = pd.read_excel(_io.BytesIO(raw)) if f.name.endswith(".xlsx") else pd.read_csv(_io.BytesIO(raw))
+                                n_total += len(_df_count)
+                            except Exception:
+                                log.warning("Comptage lignes CRM echoue pour '%s'", f.name, exc_info=True)
+                            dest.write_bytes(raw)
+                            n_imp += _import_crm_file_to_db(dest)
+                        n_skip = n_total - n_imp
+                        msg = f"{len(uploaded)} fichier(s) ajouté(s) · {n_imp} entreprise(s) intégrée(s)"
+                        if n_skip > 0:
+                            msg += f" · {n_skip} doublon(s) ignoré(s)"
+                        st.success(msg + ".")
+                        st.rerun()
+
+                    st.divider()
+                    st.markdown("**Fichiers actifs**")
+                    if stats_crm["liste"]:
+                        for item in stats_crm["liste"]:
+                            c_n, c_nb, c_s, c_d = st.columns([4, 1, 1, 1])
+                            c_n.write(f"📄 {item['nom']}")
+                            c_nb.caption(f"{item['nb']} lignes")
+                            if c_s.button("Synchroniser", key=f"sync_{item['nom']}", type="secondary"):
+                                n = _import_crm_file_to_db(Path(item["path"]))
+                                st.success(f"{n} entreprise(s) synchronisée(s).")
+                                st.rerun()
+                            if c_d.button("Supprimer", key=f"del_{item['nom']}", type="secondary"):
+                                Path(item["path"]).unlink(missing_ok=True)
+                                st.success(f"« {item['nom']} » supprimé.")
+                                st.rerun()
+                    else:
+                        st.info("Aucun fichier CRM actif.")
+
+                    st.divider()
+                    st.markdown("**Comparer un fichier**")
+                    st.caption("Vérifie lesquelles de ces entreprises sont déjà dans ton CRM — sans l'ajouter à la base.")
+                    cmp_file = st.file_uploader(
+                        "Comparer", type=["xlsx", "csv"],
+                        key="crm_compare", label_visibility="collapsed",
+                    )
+                    if cmp_file:
+                        res = compare_against_crm(cmp_file, cmp_file.name)
+                        if res.get("error"):
+                            st.error(res["error"])
+                        else:
+                            r1, r2, r3 = st.columns(3)
+                            r1.metric("Total analysé",    res["total"])
+                            r2.metric("Déjà dans le CRM", len(res["doublons"]))
+                            r3.metric("Nouveaux",          len(res["nouveaux"]))
+                            if res["doublons"]:
+                                st.markdown("**Doublons**")
+                                st.dataframe(pd.DataFrame(res["doublons"]), use_container_width=True, hide_index=True)
+                            if res["nouveaux"]:
+                                st.markdown("**Nouveaux**")
+                                st.dataframe(pd.DataFrame(res["nouveaux"]), use_container_width=True, hide_index=True)
+                except Exception as e:
+                    log.error("Erreur section CRM", exc_info=True)
+                    st.error(f"Erreur CRM : {e}")
+
     except Exception as e:
         log.error("Erreur onglet Tous les leads", exc_info=True)
         st.error(f"Erreur : {e}")
@@ -2171,12 +2398,14 @@ with tab7:
     if not _IS_PRO:
         st.markdown(
             '<div style="text-align:center;padding:80px 20px">'
-            '<div style="font-size:48px;margin-bottom:16px">🔒</div>'
-            '<div style="font-size:18px;font-weight:700;color:#F0EBE3;margin-bottom:8px">Fonctionnalité Pro</div>'
-            '<div style="font-size:13px;color:#4A4D58">Les fiches leads avec scoring, email et appels sont réservées à la licence Pro.</div>'
+            '<div style="width:64px;height:64px;margin:0 auto 20px;border-radius:16px;background:linear-gradient(135deg,#12141A,#0F1328);'
+            'border:1px solid #1A1E3A;display:flex;align-items:center;justify-content:center">'
+            '<span style="font-size:28px">🔒</span></div>'
+            '<div style="font-size:18px;font-weight:800;color:#F0EBE3;margin-bottom:6px;letter-spacing:-0.3px">Fonctionnalité Pro</div>'
+            '<div style="font-size:12px;color:#4A4D58;max-width:300px;margin:0 auto">Les fiches leads avec scoring, email et appels sont réservées à la licence Pro.</div>'
             '<a href="https://leadsengine.netlify.app" target="_blank" '
-            'style="display:inline-block;margin-top:20px;background:#E87B2A;color:#0D0E11;padding:8px 20px;'
-            'border-radius:6px;font-weight:700;font-size:13px;text-decoration:none">Passer en Pro</a>'
+            'style="display:inline-block;margin-top:24px;background:linear-gradient(135deg,#5B8DEF,#7B6BEF);color:#fff;padding:10px 28px;'
+            'border-radius:8px;font-weight:700;font-size:13px;text-decoration:none;box-shadow:0 4px 16px rgba(91,141,239,.2)">Passer en Pro</a>'
             '</div>',
             unsafe_allow_html=True,
         )
@@ -2243,7 +2472,7 @@ with tab7:
             df_fiches = df_fiches.sort_values("_score", ascending=False).reset_index(drop=True)
 
             # ── Filtres ──────────────────────────────────────────────────────
-            ff1, ff2, ff3, ff4 = st.columns(4)
+            ff1, ff2, ff3, ff4, ff5 = st.columns(5)
             with ff1:
                 _f_search = st.text_input("Rechercher", placeholder="Nom, ville, secteur…", key="fiche_search")
             with ff2:
@@ -2252,6 +2481,13 @@ with tab7:
                 _f_sector = st.multiselect("Secteur", sorted(df_fiches["sector"].dropna().unique()), key="fiche_sector")
             with ff4:
                 _f_city = st.multiselect("Ville", sorted(df_fiches["city"].dropna().unique()), key="fiche_city")
+            with ff5:
+                _session_labels = df_fiches[["session_id","session_label"]].drop_duplicates().dropna(subset=["session_id"])
+                _session_options = {
+                    (row["session_label"] or row["session_id"] or "—"): row["session_id"]
+                    for _, row in _session_labels.iterrows()
+                }
+                _f_session = st.multiselect("Session", sorted(_session_options.keys()), key="fiche_session")
 
             df_ff = df_fiches.copy()
             if _f_search:
@@ -2268,6 +2504,9 @@ with tab7:
                 df_ff = df_ff[df_ff["sector"].isin(_f_sector)]
             if _f_city:
                 df_ff = df_ff[df_ff["city"].isin(_f_city)]
+            if _f_session:
+                _sel_sids = [_session_options[lbl] for lbl in _f_session]
+                df_ff = df_ff[df_ff["session_id"].isin(_sel_sids)]
 
             # ── Stats rapides (cliquables = filtres) ────────────────────────
             _nb_green = int((df_ff["_score"] >= 60).sum())
@@ -2280,8 +2519,8 @@ with tab7:
 
             _s1, _s2, _s3, _s4 = st.columns(4)
             with _s1:
-                _sel_all = "border:2px solid #E87B2A" if _active_filter == "all" else "border:1px solid #1E2028"
-                st.markdown(f'<div style="background:#13141A;{_sel_all};border-radius:10px;padding:14px 18px;text-align:center">'
+                _sel_all = "border:2px solid #E87B2A" if _active_filter == "all" else "border:1px solid #1A1D26"
+                st.markdown(f'<div style="background:#12141A;{_sel_all};border-radius:10px;padding:14px 18px;text-align:center">'
                     f'<div style="font-size:24px;font-weight:800;color:#F0EBE3">{len(df_ff)}</div>'
                     f'<div style="font-size:11px;color:#6B7280;margin-top:2px">Total</div></div>', unsafe_allow_html=True)
                 if st.button("Tous", key="fiche_filter_all", use_container_width=True, type="tertiary"):
@@ -2405,7 +2644,7 @@ with tab7:
                         _notes_html = f'<div style="font-size:10px;color:#8B8070;margin-top:4px;font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">📝 {_notes_preview}</div>'
 
                     _selected = st.session_state.get("_fiche_selected_id") == _lead_db_id
-                    _border_color = _color if _selected else "#1E2028"
+                    _border_color = _color if _selected else "#1A1D26"
                     _bg = "#161820" if _selected else "#0F1016"
 
                     # Carte complète cliquable via bouton
@@ -2420,10 +2659,11 @@ with tab7:
                     # Détails visuels sous le bouton
                     st.markdown(
                         f'<div style="background:{_bg};border:1px solid {_border_color};border-left:3px solid {_color};'
-                        f'border-radius:0 0 8px 8px;padding:6px 14px 8px;margin-top:-16px;margin-bottom:8px">'
-                        f'<div style="font-size:11px;color:#6B7280">'
+                        f'border-radius:0 0 10px 10px;padding:8px 14px 10px;margin-top:-16px;margin-bottom:10px;'
+                        f'transition:border-color .2s ease">'
+                        f'<div style="font-size:11px;color:#4A4D58">'
                         f'{_sector_v}{" · " + _dirigeant if _dirigeant else ""}</div>'
-                        f'<div style="margin-top:4px">{_tags_html}</div>'
+                        f'<div style="margin-top:5px;display:flex;flex-wrap:wrap;gap:3px">{_tags_html}</div>'
                         f'{_notes_html}'
                         f'</div>',
                         unsafe_allow_html=True,
@@ -2460,21 +2700,23 @@ with tab7:
 
                     # Header fiche
                     st.markdown(
-                        f'<div style="background:#13141A;border:1px solid #1E2028;border-radius:12px;padding:20px 24px;margin-bottom:16px">'
+                        f'<div style="background:linear-gradient(145deg,#12141A,#0F1016);border:1px solid #1A1D26;border-radius:12px;padding:22px 26px;margin-bottom:16px;'
+                        f'box-shadow:0 4px 20px rgba(0,0,0,.3)">'
                         f'<div style="display:flex;justify-content:space-between;align-items:flex-start">'
                         f'<div>'
-                        f'<div style="font-size:20px;font-weight:800;color:#F0EBE3">{_name}</div>'
-                        f'<div style="font-size:12px;color:#6B7280;margin-top:4px">'
+                        f'<div style="font-size:20px;font-weight:800;color:#F0EBE3;letter-spacing:-0.3px">{_name}</div>'
+                        f'<div style="font-size:12px;color:#4A4D58;margin-top:4px">'
                         f'{_r.get("city") or ""}{" · " + str(_r.get("sector") or "") if _r.get("sector") else ""}</div>'
                         f'</div>'
                         f'<div style="text-align:center">'
-                        f'<div style="background:{_color}18;border:2px solid {_color};border-radius:50%;width:56px;height:56px;'
-                        f'display:flex;align-items:center;justify-content:center;margin:0 auto">'
+                        f'<div style="background:{_color}12;border:2px solid {_color}88;border-radius:50%;width:56px;height:56px;'
+                        f'display:flex;align-items:center;justify-content:center;margin:0 auto;box-shadow:0 0 20px {_color}15">'
                         f'<span style="font-size:20px;font-weight:900;color:{_color}">{_sc}</span></div>'
-                        f'<div style="font-size:10px;color:{_color};margin-top:4px">SCORE</div>'
+                        f'<div style="font-size:9px;font-weight:700;color:{_color};margin-top:4px;letter-spacing:1px">SCORE</div>'
                         f'</div></div>'
-                        f'<div style="margin-top:12px;background:#0F1016;border-radius:6px;height:8px;overflow:hidden">'
-                        f'<div style="width:{_sc}%;height:100%;background:linear-gradient(90deg,{_color}88,{_color});border-radius:6px"></div>'
+                        f'<div style="margin-top:14px;background:#0B0C0F;border-radius:4px;height:6px;overflow:hidden">'
+                        f'<div style="width:{_sc}%;height:100%;background:linear-gradient(90deg,{_color}88,{_color});border-radius:4px;'
+                        f'box-shadow:0 0 8px {_color}30"></div>'
                         f'</div></div>',
                         unsafe_allow_html=True,
                     )
@@ -2520,7 +2762,7 @@ with tab7:
 
                     # ── Section Contact ──────────────────────────────────────
                     st.markdown(
-                        '<div style="font-size:13px;font-weight:700;color:#E87B2A;margin:16px 0 8px;letter-spacing:1px">CONTACT</div>',
+                        '<div style="font-size:11px;font-weight:700;color:#E87B2A;margin:20px 0 10px;letter-spacing:1.5px;padding-bottom:6px;border-bottom:1px solid #1A1D26">CONTACT</div>',
                         unsafe_allow_html=True,
                     )
                     _contact_items = []
@@ -2531,8 +2773,8 @@ with tab7:
                     _web_d = str(_r.get("website_url")) if pd.notna(_r.get("website_url")) else ""
 
                     def _detail_row(icon, label, value, sub=""):
-                        _s = f'<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:#0F1016;border-radius:6px;margin-bottom:4px">'
-                        _s += f'<span style="font-size:16px">{icon}</span>'
+                        _s = f'<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#0F1016;border:1px solid #1A1C24;border-radius:8px;margin-bottom:5px">'
+                        _s += f'<span style="font-size:16px;min-width:20px;text-align:center">{icon}</span>'
                         _s += f'<div><div style="font-size:12px;font-weight:600;color:#F0EBE3">{value}</div>'
                         _s += f'<div style="font-size:10px;color:#6B7280">{label}{" · " + sub if sub else ""}</div></div></div>'
                         return _s
@@ -2548,7 +2790,7 @@ with tab7:
                         _href = _web_d if _web_d.startswith("http") else f"https://{_web_d}"
                         _c_html += _detail_row("🌐", "Site web", f'<a href="{_href}" target="_blank" style="color:#5B9BD5;text-decoration:none">{_web_d}</a>')
                     if not _c_html:
-                        _c_html = '<div style="color:#6B7280;font-size:12px;padding:8px">Aucune donnée contact</div>'
+                        _c_html = '<div style="color:#6B7280;font-size:12px;padding:10px 14px;background:#0F1016;border:1px solid #1A1C24;border-radius:8px">Aucune donnée contact</div>'
                     st.markdown(_c_html, unsafe_allow_html=True)
                     _action_cols = []
                     if _email_d and _phone_d:
@@ -2576,7 +2818,7 @@ with tab7:
 
                     # ── Section Entreprise ───────────────────────────────────
                     st.markdown(
-                        '<div style="font-size:13px;font-weight:700;color:#E87B2A;margin:20px 0 8px;letter-spacing:1px">ENTREPRISE</div>',
+                        '<div style="font-size:11px;font-weight:700;color:#E87B2A;margin:22px 0 10px;letter-spacing:1.5px;padding-bottom:6px;border-bottom:1px solid #1A1D26">ENTREPRISE</div>',
                         unsafe_allow_html=True,
                     )
                     _e_html = ""
@@ -2603,12 +2845,12 @@ with tab7:
                     if _addr_d:
                         _e_html += _detail_row("📍", "Adresse", _addr_d, str(_r.get("city") or ""))
                     if not _e_html:
-                        _e_html = '<div style="color:#6B7280;font-size:12px;padding:8px">Aucune donnée entreprise</div>'
+                        _e_html = '<div style="color:#6B7280;font-size:12px;padding:10px 14px;background:#0F1016;border:1px solid #1A1C24;border-radius:8px">Aucune donnée entreprise</div>'
                     st.markdown(_e_html, unsafe_allow_html=True)
 
                     # ── Section Digital ───────────────────────────────────────
                     st.markdown(
-                        '<div style="font-size:13px;font-weight:700;color:#E87B2A;margin:20px 0 8px;letter-spacing:1px">DIGITAL</div>',
+                        '<div style="font-size:11px;font-weight:700;color:#E87B2A;margin:22px 0 10px;letter-spacing:1.5px;padding-bottom:6px;border-bottom:1px solid #1A1D26">DIGITAL</div>',
                         unsafe_allow_html=True,
                     )
                     _d_html = ""
@@ -2627,19 +2869,19 @@ with tab7:
                     if pd.notna(_speed_d):
                         _sp_val = int(_speed_d)
                         _sp_c = "#2ECC71" if _sp_val >= 70 else "#F5D87A" if _sp_val >= 50 else "#E74C3C"
-                        _d_html += f'<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:#0F1016;border-radius:6px;margin-bottom:4px">'
-                        _d_html += f'<span style="font-size:16px">🚀</span>'
+                        _d_html += f'<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#0F1016;border:1px solid #1A1C24;border-radius:8px;margin-bottom:5px">'
+                        _d_html += f'<span style="font-size:16px;min-width:20px;text-align:center">🚀</span>'
                         _d_html += f'<div style="flex:1"><div style="font-size:12px;font-weight:600;color:#F0EBE3">Vitesse mobile : {_sp_val}/100</div>'
-                        _d_html += f'<div style="background:#1E2028;border-radius:4px;height:6px;margin-top:4px;overflow:hidden">'
+                        _d_html += f'<div style="background:#1A1D26;border-radius:4px;height:6px;margin-top:4px;overflow:hidden">'
                         _d_html += f'<div style="width:{_sp_val}%;height:100%;background:{_sp_c};border-radius:4px"></div></div></div></div>'
                     _seo_d = _r.get("seo_score")
                     if pd.notna(_seo_d):
                         _seo_val = int(_seo_d)
                         _seo_c = "#2ECC71" if _seo_val >= 7 else "#F5D87A" if _seo_val >= 4 else "#E74C3C"
-                        _d_html += f'<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:#0F1016;border-radius:6px;margin-bottom:4px">'
-                        _d_html += f'<span style="font-size:16px">📊</span>'
+                        _d_html += f'<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#0F1016;border:1px solid #1A1C24;border-radius:8px;margin-bottom:5px">'
+                        _d_html += f'<span style="font-size:16px;min-width:20px;text-align:center">📊</span>'
                         _d_html += f'<div style="flex:1"><div style="font-size:12px;font-weight:600;color:#F0EBE3">Score SEO : {_seo_val}/10</div>'
-                        _d_html += f'<div style="background:#1E2028;border-radius:4px;height:6px;margin-top:4px;overflow:hidden">'
+                        _d_html += f'<div style="background:#1A1D26;border-radius:4px;height:6px;margin-top:4px;overflow:hidden">'
                         _d_html += f'<div style="width:{_seo_val * 10}%;height:100%;background:{_seo_c};border-radius:4px"></div></div></div></div>'
                     _weak_d = str(_r.get("seo_weaknesses") or "") if pd.notna(_r.get("seo_weaknesses")) else ""
                     if _weak_d:
@@ -2653,12 +2895,12 @@ with tab7:
                         _ads_icon = "💰" if _ads_val == "Oui" else "🚫"
                         _d_html += _detail_row(_ads_icon, "Google Ads", _ads_val)
                     if not _d_html:
-                        _d_html = '<div style="color:#6B7280;font-size:12px;padding:8px">Aucune donnée digitale — lance l\'analyse sites</div>'
+                        _d_html = '<div style="color:#6B7280;font-size:12px;padding:10px 14px;background:#0F1016;border:1px solid #1A1C24;border-radius:8px">Aucune donnée digitale — lance l\'analyse sites</div>'
                     st.markdown(_d_html, unsafe_allow_html=True)
 
                     # ── Section Suivi ────────────────────────────────────────
                     st.markdown(
-                        '<div style="font-size:13px;font-weight:700;color:#E87B2A;margin:20px 0 8px;letter-spacing:1px">SUIVI</div>',
+                        '<div style="font-size:11px;font-weight:700;color:#E87B2A;margin:22px 0 10px;letter-spacing:1.5px;padding-bottom:6px;border-bottom:1px solid #1A1D26">SUIVI</div>',
                         unsafe_allow_html=True,
                     )
 
@@ -2687,9 +2929,9 @@ with tab7:
                         _st_color = CALL_STATUSES.get(_new_status, ("", "#6B7280"))[1]
                         _st_label = CALL_STATUSES.get(_new_status, ("", ""))[0]
                         st.markdown(
-                            f'<div style="margin-top:28px;background:{_st_color}22;color:{_st_color};'
-                            f'font-size:12px;font-weight:700;padding:8px 14px;border-radius:6px;text-align:center;'
-                            f'border:1px solid {_st_color}44">{_st_label}</div>',
+                            f'<div style="margin-top:28px;background:{_st_color}15;color:{_st_color};'
+                            f'font-size:11px;font-weight:700;padding:9px 14px;border-radius:8px;text-align:center;'
+                            f'border:1px solid {_st_color}30;letter-spacing:0.5px">{_st_label}</div>',
                             unsafe_allow_html=True,
                         )
 
@@ -2777,7 +3019,7 @@ with tab7:
 
                     # ── Historique ──────────────────────────────────────
                     st.markdown(
-                        '<div style="font-size:13px;font-weight:700;color:#E87B2A;margin:20px 0 8px;letter-spacing:1px">HISTORIQUE</div>',
+                        '<div style="font-size:11px;font-weight:700;color:#E87B2A;margin:22px 0 10px;letter-spacing:1.5px;padding-bottom:6px;border-bottom:1px solid #1A1D26">HISTORIQUE</div>',
                         unsafe_allow_html=True,
                     )
 
@@ -2789,7 +3031,7 @@ with tab7:
                                 _h_date = _h_parts[0] if len(_h_parts) > 1 else ""
                                 _h_text = _h_parts[1] if len(_h_parts) > 1 else _h_line
                                 _hist_html += (
-                                    f'<div style="display:flex;gap:10px;padding:6px 12px;background:#0F1016;border-radius:6px;margin-bottom:3px;border-left:2px solid #E87B2A44">'
+                                    f'<div style="display:flex;gap:10px;padding:8px 14px;background:#0F1016;border:1px solid #1A1C24;border-left:2px solid #E87B2A44;border-radius:8px;margin-bottom:4px">'
                                     f'<span style="font-size:10px;color:#4A4D58;white-space:nowrap;min-width:100px">{_h_date}</span>'
                                     f'<span style="font-size:11px;color:#C8C2BB">{_h_text}</span></div>'
                                 )
@@ -2828,9 +3070,11 @@ with tab7:
 
                 else:
                     st.markdown(
-                        '<div style="display:flex;align-items:center;justify-content:center;height:400px;'
-                        'color:#4A4D58;font-size:14px;text-align:center">'
-                        '<div>← Sélectionne un lead pour afficher sa fiche détaillée</div></div>',
+                        '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:400px;'
+                        'color:#3A3D46;font-size:13px;text-align:center">'
+                        '<div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(145deg,#12141A,#0F1016);'
+                        'border:1px solid #1A1D26;display:flex;align-items:center;justify-content:center;margin-bottom:16px;font-size:20px">📇</div>'
+                        '<div>Sélectionne un lead pour afficher sa fiche</div></div>',
                         unsafe_allow_html=True,
                     )
 
@@ -2884,11 +3128,12 @@ with tab6:
     ]
     _status_html = ''.join(
         f'<span style="display:inline-block;background:{"#0D1A0F" if ok else "#1A1200"};border:1px solid {"#1A3320" if ok else "#3A2E00"};'
-        f'border-radius:6px;padding:4px 12px;margin:0 4px 4px 0;font-size:11px;color:{"#2ECC71" if ok else "#E8C32A"};font-weight:600">'
+        f'border-radius:8px;padding:5px 14px;margin:0 6px 6px 0;font-size:11px;color:{"#2ECC71" if ok else "#E8C32A"};font-weight:600;'
+        f'letter-spacing:0.3px">'
         f'{"✓" if ok else "○"} {lbl}</span>'
         for lbl, ok in _status_items
     )
-    st.markdown(f'<div style="margin-bottom:20px">{_status_html}</div>', unsafe_allow_html=True)
+    st.markdown(f'<div style="margin-bottom:24px">{_status_html}</div>', unsafe_allow_html=True)
 
     # ── Sous-onglets par thème ────────────────────────────────────────────────
     _cfg_tab_api, _cfg_tab_phone, _cfg_tab_email, _cfg_tab_crm, _cfg_tab_system = st.tabs([
@@ -3228,7 +3473,7 @@ with tab6:
         st.markdown('<div class="section-lbl">Licence</div>', unsafe_allow_html=True)
         _lic_tier = get_tier()
         _lic_key = get_license_key()
-        _lic_color = "#E87B2A" if _lic_tier == "pro" else "#4A4D58"
+        _lic_color = "#5B8DEF" if _lic_tier == "pro" else "#4A4D58"
         st.markdown(
             f'<div style="font-family:IBM Plex Mono,monospace;font-size:12px;color:#C8C2BB;margin-bottom:8px">'
             f'Licence : <span style="background:{_lic_color};color:#0D0E11;font-size:10px;font-weight:800;'

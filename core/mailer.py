@@ -12,6 +12,7 @@ from email import encoders
 from email.header import decode_header
 from datetime import datetime
 from core.user_config import load as load_user_config
+from core.blacklist import is_blacklisted
 
 
 def is_gmail_configured() -> bool:
@@ -37,10 +38,14 @@ def send_email(
     if not sender or not password:
         return False, "Gmail non configuré — va dans Configuration"
 
+    if is_blacklisted(to):
+        return False, "Destinataire sur liste d'opposition — email non envoyé"
+
     msg = MIMEMultipart()
     msg["From"] = sender
     msg["To"] = to
     msg["Subject"] = subject
+    msg["List-Unsubscribe"] = f"<mailto:{sender}?subject=STOP>"
 
     if cc.strip():
         msg["Cc"] = cc.strip()
@@ -53,6 +58,25 @@ def send_email(
     elif priority == "low":
         msg["X-Priority"] = "5"
         msg["Importance"] = "low"
+
+    unsubscribe_text = (
+        "\n\n---\n"
+        "Vous recevez cet email dans le cadre d'une prospection commerciale B2B. "
+        f"Si vous ne souhaitez plus être contacté, répondez STOP à {sender} "
+        "et vos coordonnées seront supprimées de notre base."
+    )
+    unsubscribe_html = (
+        '<br><br><hr style="border:none;border-top:1px solid #ccc;margin:20px 0">'
+        '<p style="font-size:11px;color:#888">'
+        "Vous recevez cet email dans le cadre d'une prospection commerciale B2B. "
+        f'Si vous ne souhaitez plus être contacté, répondez STOP à <a href="mailto:{sender}?subject=STOP">{sender}</a> '
+        "et vos coordonnées seront supprimées de notre base.</p>"
+    )
+
+    if html:
+        body += unsubscribe_html
+    else:
+        body += unsubscribe_text
 
     content_type = "html" if html else "plain"
     msg.attach(MIMEText(body, content_type, "utf-8"))

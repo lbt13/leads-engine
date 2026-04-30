@@ -10,10 +10,10 @@ from urllib.parse import urlencode, unquote
 from core.user_config import load as load_user_config, save as save_user_config
 
 
-# ── HubSpot OAuth config ─────────────────────────────────────────────���──────
-HUBSPOT_CLIENT_ID = "51ca37af-24ed-4727-9608-cfb58462e719"
-HUBSPOT_CLIENT_SECRET = "0857cd81-cbb6-4b78-a7e1-d282ebe165a9"
-HUBSPOT_REDIRECT_URI = "https://example.com/callback"
+# ── HubSpot OAuth config ────────────────────────────────────────────────────
+HUBSPOT_CLIENT_ID = os.environ.get("HUBSPOT_CLIENT_ID", "")
+HUBSPOT_CLIENT_SECRET = os.environ.get("HUBSPOT_CLIENT_SECRET", "")
+HUBSPOT_REDIRECT_URI = os.environ.get("HUBSPOT_REDIRECT_URI", "https://example.com/callback")
 HUBSPOT_SCOPES = "oauth crm.objects.contacts.write crm.objects.contacts.read"
 
 

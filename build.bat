@@ -10,7 +10,7 @@ call venv\Scripts\activate.bat
 :: Installe PyInstaller dans le venv
 pip install pyinstaller
 
-:: Nettoie les builds précédents
+:: Nettoie les builds pr�c�dents
 if exist dist\LeadsEngine rmdir /s /q dist\LeadsEngine
 if exist build rmdir /s /q build
 
@@ -48,15 +48,26 @@ pyinstaller ^
     --hidden-import "email.mime.text" ^
     --hidden-import "email.mime.multipart" ^
     --hidden-import "email.mime.base" ^
+    --hidden-import "imaplib" ^
+    --hidden-import "smtplib" ^
+    --hidden-import "email.encoders" ^
+    --hidden-import "email.header" ^
+    --hidden-import "csv" ^
+    --hidden-import "hashlib" ^
+    --hidden-import "logging.handlers" ^
+    --hidden-import "subprocess" ^
+    --hidden-import "difflib" ^
+    --hidden-import "urllib.parse" ^
+    --hidden-import "urllib.robotparser" ^
     run.py
 
-:: Copie le .env dans le dossier de distribution (clés API)
+:: Copie le .env dans le dossier de distribution (cl�s API)
 if exist .env copy .env dist\LeadsEngine\.env
 
 :: Copie version.txt dans le dossier de distribution
 if exist version.txt copy version.txt dist\LeadsEngine\version.txt
 
-:: Crée le ZIP de release (sans données utilisateur)
+:: Cr�e le ZIP de release (sans donn�es utilisateur)
 echo.
 echo Creation du ZIP de release...
 powershell -Command ^

@@ -4,6 +4,7 @@ Le provider appelle d'abord l'utilisateur, puis connecte au lead.
 """
 
 from core.user_config import load as load_user_config
+from core.blacklist import is_blacklisted
 
 
 def _clean_phone(raw: str) -> str:
@@ -29,6 +30,9 @@ def is_twilio_configured() -> bool:
 
 
 def make_call_twilio(to: str) -> tuple[bool, str]:
+    if is_blacklisted(to):
+        return False, "Numéro sur liste d'opposition — appel non lancé"
+
     cfg = load_user_config()
     account_sid = cfg.get("twilio_account_sid", "").strip()
     auth_token = cfg.get("twilio_auth_token", "").strip()
@@ -77,6 +81,9 @@ def is_telnyx_configured() -> bool:
 
 
 def make_call_telnyx(to: str) -> tuple[bool, str]:
+    if is_blacklisted(to):
+        return False, "Numéro sur liste d'opposition — appel non lancé"
+
     cfg = load_user_config()
     api_key = cfg.get("telnyx_api_key", "").strip()
     connection_id = cfg.get("telnyx_connection_id", "").strip()

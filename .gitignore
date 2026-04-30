@@ -11,3 +11,7 @@ __pycache__/
 crm/
 analyses_a2/
 output/
+user_config.json
+blacklist.json
+admin/
+generate_key.py

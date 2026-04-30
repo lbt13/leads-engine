@@ -1,16 +1,15 @@
 """
-core/license.py — Système de licence Standard / Pro avec checksum.
+core/license.py — Validation de licence Standard / Pro.
 Clé format : LE-STD-XXXX-XXXX ou LE-PRO-XXXX-XXXX
-Le SEED (4 chars) est aléatoire, le CHECKSUM (4 chars) est un hash du seed + secret.
 """
 
 import hashlib
 import re
-import secrets
+from base64 import b64decode
 from core.user_config import load, save
 
-_SECRET = "LeG8x!qZ#2026vBnTr"
-_ADMIN_KEY = "labitedanslachatte13k"
+_K = [b"TGVHOHg=", b"IXFaIzI=", b"MDI2dkI=", b"blRy"]
+_SECRET = b"".join(b64decode(k) for k in _K).decode()
 
 TIERS = {"standard", "pro"}
 TIER_LABELS = {"standard": "Standard", "pro": "Pro"}
@@ -33,9 +32,6 @@ def _validate_key(key: str) -> str | None:
 
 
 def activate(key: str) -> tuple[bool, str]:
-    if key.strip() == _ADMIN_KEY:
-        save({"license_key": _ADMIN_KEY, "tier": "pro"})
-        return True, "Licence Admin activée."
     tier = _validate_key(key)
     if tier is None:
         return False, "Clé invalide ou corrompue."
@@ -65,15 +61,3 @@ def is_standard() -> bool:
 
 def get_license_key() -> str:
     return load().get("license_key", "")
-
-
-def generate_key(tier: str, seed: str = "") -> str:
-    """Génère une clé de licence. Si seed est vide, un seed aléatoire est utilisé."""
-    assert tier in ("standard", "pro")
-    prefix = "STD" if tier == "standard" else "PRO"
-    if not seed:
-        seed = secrets.token_hex(2).upper()
-    else:
-        seed = hashlib.sha256(seed.encode()).hexdigest().upper()[:4]
-    checksum = _compute_checksum(seed)
-    return f"LE-{prefix}-{seed}-{checksum}"

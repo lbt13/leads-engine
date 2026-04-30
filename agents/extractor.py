@@ -22,14 +22,32 @@ from services.dns_lookup import get_hosting
 from services.pagespeed import get_pagespeed
 
 HEADERS = {
-    "User-Agent": (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-        "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/124.0.0.0 Safari/537.36"
-    ),
+    "User-Agent": "LeadsEngine/12.0 (+https://leadsengine.netlify.app; contact: leadsengine.contact@gmail.com)",
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
     "Accept-Language": "fr-FR,fr;q=0.9",
 }
+
+
+# ── Respect robots.txt ───────────────────────────────────────────────────────
+_robots_cache: dict[str, bool] = {}
+
+
+def _is_allowed_by_robots(url: str) -> bool:
+    from urllib.robotparser import RobotFileParser
+    parsed = urlparse(url)
+    base = f"{parsed.scheme}://{parsed.netloc}"
+    if base in _robots_cache:
+        return _robots_cache[base]
+    try:
+        rp = RobotFileParser()
+        rp.set_url(f"{base}/robots.txt")
+        rp.read()
+        allowed = rp.can_fetch(HEADERS["User-Agent"], url)
+        _robots_cache[base] = allowed
+        return allowed
+    except Exception:
+        _robots_cache[base] = True
+        return True
 
 
 # ── Détection CMS ─────────────────────────────────────────────────────────────
@@ -156,18 +174,108 @@ def detect_seo(html: str, soup) -> dict:
 
 
 # ── Contacts ──────────────────────────────────────────────────────────────────
-def extract_email(html: str) -> str:
-    raw = re.findall(r"[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}", html)
-    blacklist = {"noreply","no-reply","exemple","example","test@","email@","user@"}
+_EMAIL_RE = re.compile(r"[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}")
+_EMAIL_BLACKLIST = {"noreply","no-reply","no_reply","exemple","example","test@","email@","user@",
+                    "sentry","webpack","devtools","localhost","wixpress","sentry.io"}
+_EMAIL_PRIORITY = ["contact","info","bonjour","hello","accueil","pro","commercial","direction"]
+
+CONTACT_PATHS = [
+    "/contact", "/contactez-nous", "/nous-contacter",
+    "/a-propos", "/about", "/about-us", "/qui-sommes-nous",
+    "/mentions-legales", "/legal", "/mentions",
+    "/cgv", "/cgu",
+]
+
+def _extract_emails_from_html(html: str) -> list[str]:
+    raw = _EMAIL_RE.findall(html)
     seen, result = set(), []
     for e in raw:
         el = e.lower()
-        if el not in seen and not any(b in el for b in blacklist):
-            result.append(e); seen.add(el)
-    if not result: return ""
-    priority = ["contact","info","bonjour","hello","accueil","pro"]
-    result.sort(key=lambda e: 0 if any(k in e.lower() for k in priority) else 1)
-    return result[0]
+        if el not in seen and not any(b in el for b in _EMAIL_BLACKLIST):
+            if not el.endswith((".png",".jpg",".jpeg",".gif",".svg",".webp",".css",".js")):
+                result.append(e)
+                seen.add(el)
+    return result
+
+def _fetch_contact_pages(base_url: str) -> str:
+    """Scrape les pages contact/about/legal pour trouver des emails."""
+    parsed = urlparse(base_url)
+    origin = f"{parsed.scheme}://{parsed.netloc}"
+    combined_html = ""
+    for path in CONTACT_PATHS:
+        page_url = origin + path
+        try:
+            if not _is_allowed_by_robots(page_url):
+                continue
+            with httpx.Client(headers=HEADERS, timeout=8, follow_redirects=True, verify=False) as client:
+                r = client.get(page_url)
+                if r.status_code < 400 and len(r.text) > 200:
+                    combined_html += r.text + "\n"
+        except Exception:
+            continue
+    return combined_html
+
+def _check_mx_exists(domain: str) -> bool:
+    """Vérifie qu'un domaine a un enregistrement MX (= peut recevoir des mails)."""
+    import dns.resolver
+    try:
+        answers = dns.resolver.resolve(domain, "MX")
+        return len(answers) > 0
+    except Exception:
+        return False
+
+def _guess_common_emails(domain: str) -> str:
+    """Tente les préfixes courants si le domaine a un MX."""
+    try:
+        if not _check_mx_exists(domain):
+            return ""
+    except Exception:
+        return ""
+    for prefix in ("contact", "info", "bonjour", "hello"):
+        candidate = f"{prefix}@{domain}"
+        try:
+            import smtplib
+            import dns.resolver
+            mx = dns.resolver.resolve(domain, "MX")
+            mx_host = str(sorted(mx, key=lambda r: r.preference)[0].exchange).rstrip(".")
+            with smtplib.SMTP(mx_host, 25, timeout=5) as smtp:
+                smtp.helo("leadsengine.app")
+                smtp.mail("check@leadsengine.app")
+                code, _ = smtp.rcpt(candidate)
+                if code == 250:
+                    return candidate
+        except Exception:
+            continue
+    return ""
+
+def extract_email_deep(html: str, base_url: str) -> str:
+    """Extraction d'email en profondeur : page principale → pages secondaires → guess SMTP."""
+    all_emails = _extract_emails_from_html(html)
+
+    if not all_emails:
+        extra_html = _fetch_contact_pages(base_url)
+        if extra_html:
+            all_emails = _extract_emails_from_html(html + "\n" + extra_html)
+
+    if all_emails:
+        all_emails.sort(key=lambda e: 0 if any(k in e.lower() for k in _EMAIL_PRIORITY) else 1)
+        return all_emails[0]
+
+    parsed = urlparse(base_url)
+    domain = parsed.netloc.replace("www.", "")
+    guessed = _guess_common_emails(domain)
+    if guessed:
+        return guessed
+
+    return ""
+
+def extract_email(html: str) -> str:
+    """Fallback simple pour les appels existants sans URL."""
+    all_emails = _extract_emails_from_html(html)
+    if not all_emails:
+        return ""
+    all_emails.sort(key=lambda e: 0 if any(k in e.lower() for k in _EMAIL_PRIORITY) else 1)
+    return all_emails[0]
 
 def extract_phone(html: str) -> str:
     raw = re.findall(r"(?:(?:\+33|0033|0)\s*[\.\-\s]?)(?:[1-9]\s*(?:[\.\-\s]?\d{2}){4})", html)
@@ -315,10 +423,10 @@ def compute_weaknesses(structure: dict, ps_mobile, cms: str, seo: dict, social_c
 def _fetch_html(url: str) -> dict:
     """
     Récupère le HTML via httpx pour la détection de CMS, emails et SEO.
+    Respecte robots.txt et utilise SSL avec fallback.
     """
     result = {"html": "", "headers": {}, "final_url": url, "is_https": False}
 
-    # Essaie d'abord https, puis http si nécessaire
     urls_to_try = []
     if url.startswith("http"):
         urls_to_try.append(url)
@@ -330,24 +438,34 @@ def _fetch_html(url: str) -> dict:
         urls_to_try = [f"https://{url}", f"http://{url}"]
 
     for try_url in urls_to_try:
-        try:
-            with httpx.Client(
-                headers=HEADERS,
-                timeout=15,
-                follow_redirects=True,
-                verify=False,        # ignore les certs expirés
-            ) as client:
-                r = client.get(try_url)
-                if r.status_code < 400:
-                    result["html"]      = r.text
-                    result["headers"]   = dict(r.headers)
-                    result["final_url"] = str(r.url)
-                    result["is_https"]  = str(r.url).startswith("https://")
-                    return result
-        except httpx.TimeoutException:
-            log.warning("Timeout httpx : %s", try_url)
-        except Exception as e:
-            log.debug("httpx erreur %s : %s", try_url, e)
+        if not _is_allowed_by_robots(try_url):
+            log.info("Bloqué par robots.txt : %s", try_url)
+            result["_blocked_robots"] = True
+            return result
+
+        for verify_ssl in (True, False):
+            try:
+                with httpx.Client(
+                    headers=HEADERS,
+                    timeout=15,
+                    follow_redirects=True,
+                    verify=verify_ssl,
+                ) as client:
+                    r = client.get(try_url)
+                    if r.status_code < 400:
+                        result["html"]      = r.text
+                        result["headers"]   = dict(r.headers)
+                        result["final_url"] = str(r.url)
+                        result["is_https"]  = str(r.url).startswith("https://")
+                        return result
+            except httpx.TimeoutException:
+                log.warning("Timeout httpx : %s", try_url)
+                break
+            except Exception as e:
+                if verify_ssl:
+                    log.debug("SSL échoué %s, retry sans vérification", try_url)
+                    continue
+                log.debug("httpx erreur %s : %s", try_url, e)
 
     return result
 
@@ -378,6 +496,9 @@ def process_lead(lead_dict: dict, modules: dict | None = None) -> dict:
         html    = visit.get("html") or ""
         headers = visit.get("headers") or {}
 
+        if visit.get("_blocked_robots"):
+            return {"_status": "skipped", "_error": "bloqué par robots.txt"}
+
         if not html or len(html) < 200:
             return {"_status": "error", "_error": f"site inaccessible ({url})"}
 
@@ -393,7 +514,7 @@ def process_lead(lead_dict: dict, modules: dict | None = None) -> dict:
         cms     = detect_cms(html, headers) if mod["cms"] else "Inconnu"
         hosting = (get_hosting(domain) or "Inconnu") if mod["cms"] else None
         agence  = detect_agence(html) if mod["agence"] else ""
-        email   = extract_email(html) if mod["contacts"] else ""
+        email   = extract_email_deep(html, visit.get("final_url") or url) if mod["contacts"] else ""
         phone   = extract_phone(html) if mod["contacts"] else ""
         seo     = detect_seo(html, soup) if mod["seo"] else {}
         has_gads = detect_google_ads(html) if mod["google_ads"] else False
